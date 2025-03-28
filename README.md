@@ -2,17 +2,21 @@
 StockFlow is a modern inventory and sales management system designed for small businesses. It helps users track stock levels, manage customer orders, and monitor pending payments in an efficient and organized way.
 
 Features
-✅ Product Inventory Management – Add, update, and track stock levels.
-✅ Sales & Orders Tracking – Record and manage customer purchases.
-✅ Customer Management – Store customer details and order history.
-✅ Payment Status Tracking – Identify pending, paid, and partially paid orders.
-✅ User Authentication – Secure login system with credentials.
-✅ Reports & Insights – Generate reports for low stock, overdue payments, and sales performance.
+<ul>
+  <li>✅ Product Inventory Management – Add, update, and track stock levels. </li>
+  <li>✅ Sales & Orders Tracking – Record and manage customer purchases.</li>
+  <li>✅ Customer Management – Store customer details and order history.</li>
+  <li>✅ Payment Status Tracking – Identify pending, paid, and partially paid orders.</li>
+  <li>✅ User Authentication – Secure login system with credentials.</li>
+  <li>✅ Reports & Insights – Generate reports for low stock, overdue payments, and sales performance.</li>
+</ul>
 
 Tech Stack
-Backend: .NET 9 (C#), ASP.NET Core, Entity Framework Core
-Database: SQL Server
-Architecture: Clean Architecture, Repository Pattern, Unit of Work
+<ul>
+  <li>Backend: .NET 9 (C#), ASP.NET Core, Entity Framework Core</li>
+  <li>Database: SQL Server</li>
+  <li>Architecture: Clean Architecture, Repository Pattern, Unit of Work</li>
+</ul>
 
 Setup & Installation
 
