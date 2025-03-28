@@ -20,10 +20,16 @@ Tech Stack
 
 Setup & Installation
 
-1️⃣ Clone the repository:
-  git clone https://github.com/your-username/StockFlow.git
-  cd StockFlow
-2️⃣ Configure the database connection string in appsettings.json.
-3️⃣ Run the migrations and start the project:
-  dotnet ef database update
-  dotnet run
+<ul>
+  <li>
+    1️⃣ Clone the repository: 
+    - git clone https://github.com/your-username/StockFlow.git
+    - cd StockFlow
+  </li>
+  <li>2️⃣ Configure the database connection string in appsettings.json.</li>
+  <li>
+    3️⃣ Run the migrations and start the project:
+      - dotnet ef database update
+      - dotnet run
+  </li>
+</ul>
