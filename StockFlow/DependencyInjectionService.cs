@@ -1,4 +1,6 @@
-﻿namespace StockFlow.Api
+﻿using Microsoft.OpenApi.Models;
+
+namespace StockFlow.Api
 {
     public static class DependencyInjectionService
     {

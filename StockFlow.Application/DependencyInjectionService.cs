@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace StockFlow.Application
@@ -12,6 +7,9 @@ namespace StockFlow.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
             return services;
         }
     }
