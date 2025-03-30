@@ -1,10 +1,6 @@
-using MediatR;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models;
+using System.Reflection;
 using StockFlow.Api;
 using StockFlow.Application;
-using StockFlow.Application.Features.Customer.Queries.GetAllCustomers;
 using StockFlow.Domain;
 using StockFlow.Infraestructure;
 
@@ -16,18 +12,11 @@ builder.Services
     .AddInfraestructure(builder.Configuration)
     .AddApplication()
     .AddDomain();
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllCustomersQueryHandler).Assembly));
+builder.Services.AddControllers();
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "StockFlow API",
-        Version = "v1",
-        Description = "API for managing inventory, customers, and sales.",
-    });
-});
 
 var app = builder.Build();
 
@@ -42,10 +31,6 @@ app.UseSwaggerUI(options =>
     options.SwaggerDocumentUrlsPath = "openapi/v1.json";
 });
 
-app.MapGet("/getAllCustomer", async ([FromServices] IMediator mediator) =>
-{
-    return await mediator.Send(new GetAllCustomersQuery());
-}).WithName("GetAllCustomers");
-
+app.MapControllers();
 
 app.Run();

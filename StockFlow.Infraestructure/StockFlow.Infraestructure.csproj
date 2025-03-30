@@ -21,4 +21,8 @@
     <ProjectReference Include="..\StockFlow.Domain\StockFlow.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="External\" />
+  </ItemGroup>
+
 </Project>

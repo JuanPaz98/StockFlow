@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Domain.Entities;
 
 namespace StockFlow.Api.Infrastructure.Persistence;
 
@@ -27,6 +28,8 @@ public partial class StockFlowContext : DbContext
     public virtual DbSet<SupplierEntity> Suppliers { get; set; }
 
     public virtual DbSet<UserEntity> Users { get; set; }
+    public virtual DbSet<PaymentEntity> Payments { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,7 +38,6 @@ public partial class StockFlowContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Customer__3214EC07B9F7D302");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.PaymentStatus).HasDefaultValue("Pending");
         });
 
         modelBuilder.Entity<OrderEntity>(entity =>
@@ -47,7 +49,7 @@ public partial class StockFlowContext : DbContext
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Orders__Customer__47DBAE45");
+                .HasConstraintName("FK_Orders_Customers");
         });
 
         modelBuilder.Entity<OrderDetailEntity>(entity =>
@@ -94,6 +96,27 @@ public partial class StockFlowContext : DbContext
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Role).HasDefaultValue("User");
+        });
+
+        modelBuilder.Entity<PaymentEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_Payments");
+
+            entity.Property(e => e.Id)
+            .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.AmountPaid)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            entity.Property(e => e.PaymentDate)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("GETDATE()");
+
+            entity.HasOne(e => e.Order)
+                .WithMany(p => p.Payments)
+                .HasForeignKey(e => e.Id)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);
