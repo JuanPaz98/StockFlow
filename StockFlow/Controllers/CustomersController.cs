@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Application.Features.Customer.Commands.CreateCustomer;
-using StockFlow.Application.Features.Customer.Queries.GetAllCustomers;
+using StockFlow.Application.Features.Customer.Commands.UpdateCustomer;
 
 namespace StockFlow.Api.Controllers
 {
@@ -16,24 +16,41 @@ namespace StockFlow.Api.Controllers
         }
 
         [HttpGet("get-all-customers")]
-        public async Task<ActionResult<IEnumerable<GetAllCustomersModel>>> GetAll()
+        public async Task<IActionResult> GetAll()
         {
             var customers = await _mediator.Send(new GetAllCustomersQuery());
             return Ok(customers);
         }
 
-        [HttpPost("create-customer")]
-        public async Task<ActionResult<int>> Create(
+        [HttpGet("get-by-id/{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var customer = await _mediator.Send(new GetCustomerByIdQuery(id));
+            return Ok(customer);
+        }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(
             [FromBody] CreateCustomerModel model)
         {
-            var customerId = await _mediator.Send(new CreateCustomerCommand(model));
-            if (customerId == null)
+            var customer = await _mediator.Send(new CreateCustomerCommand(model));
+            if (customer == null)
             {
                 return BadRequest();
             }
-            return StatusCode(201, customerId);
+            return StatusCode(201);
         }
 
-
+        [HttpPut("update")]
+        public async Task<IActionResult> Update(
+            [FromBody] UpdateCustomerModel model)
+        {
+            var customer = await _mediator.Send(new UpdateCustomerCommand(model));
+            if (customer == null)
+            {
+                return BadRequest();
+            }
+            return StatusCode(StatusCodes.Status200OK, model);
+        }
     }
 }
