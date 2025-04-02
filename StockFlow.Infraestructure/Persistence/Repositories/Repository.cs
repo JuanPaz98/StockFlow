@@ -31,6 +31,8 @@ namespace StockFlow.Infraestructure.Persistence.Repositories
 
         public void Update(T entity) => _dbSet.Update(entity);
 
+        public void RemoveRange(IEnumerable<T> entities) => _dbSet.RemoveRange(entities);
+
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();

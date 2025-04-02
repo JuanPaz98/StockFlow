@@ -57,5 +57,21 @@ namespace StockFlow.Api.Controllers
 
             return Ok(result);
         }
+        
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _mediator.Send(new DeleteOrderCommand(id));
+
+            return Ok(result);
+        }
+
+        [HttpDelete("delete-order-details/{id}")]
+        public async Task<IActionResult> DeleteOrderDetails(int id)
+        {
+            var result = await _mediator.Send(new DeleteOrderDetailsCommand(id));
+
+            return Ok(result);
+        }
     }
 }

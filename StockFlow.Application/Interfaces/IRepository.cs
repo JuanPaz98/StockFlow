@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
 
 namespace StockFlow.Application.Interfaces
 {
@@ -12,6 +11,7 @@ namespace StockFlow.Application.Interfaces
         Task AddAsync(T entity);
         void Update(T entity);
         void Remove(T entity);
+        void RemoveRange(IEnumerable<T> entities);
         Task<int> SaveChangesAsync();
     }
 
