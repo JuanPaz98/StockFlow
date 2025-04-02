@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Application.Features.Orders.Commands.CreateOrder;
+using StockFlow.Application.Features.Orders.Commands.UpdateOrder;
+using StockFlow.Application.Features.Orders.Dtos;
 
 namespace StockFlow.Api.Controllers
 {
@@ -17,7 +19,7 @@ namespace StockFlow.Api.Controllers
 
         [HttpPost("create")]
         public async Task<IActionResult> Create(
-            [FromBody] CreateOrderModel model)
+            [FromBody] OrderRequestDto model)
         {
             var result = await _mediator.Send(new CreateOrderCommand(model));
 
@@ -29,6 +31,15 @@ namespace StockFlow.Api.Controllers
             return Ok(result);
         }
 
+        [HttpGet("get-by-id/{id}")]
+        public async Task<IActionResult> GetById(
+           int id)
+        {
+            var orders = await _mediator.Send(new GetOrderByIdQuery(id));
+
+            return Ok(orders);
+        }
+
         [HttpGet("get-orders-by-customer-id/{id}")]
         public async Task<IActionResult> GetByCustomerId(
             int id)
@@ -36,6 +47,15 @@ namespace StockFlow.Api.Controllers
             var orders = await _mediator.Send(new GetOrdersByCustomerIdQuery(id));
 
             return Ok(orders); 
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> Update(
+            [FromBody] UpdateOrderModel model)
+        {
+            var result = await _mediator.Send(new UpdateOrderCommand(model));
+
+            return Ok(result);
         }
     }
 }

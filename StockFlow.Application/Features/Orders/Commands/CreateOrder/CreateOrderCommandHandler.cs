@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Features.Orders.Dtos;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
 {
-    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, CreateOrderModel>
+    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderResponseDto>
     {
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IMapper _mapper;
@@ -16,7 +17,7 @@ namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
             _mapper = mapper;
         }
 
-        public async Task<CreateOrderModel> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<OrderResponseDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
             var orderEntity = _mapper.Map<OrderEntity>(request.model);
 
@@ -37,7 +38,7 @@ namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
             await _orderRepository.AddAsync(orderEntity);
             await _orderRepository.SaveChangesAsync(); 
 
-            return _mapper.Map<CreateOrderModel>(orderEntity);
+            return _mapper.Map<OrderResponseDto>(orderEntity);
         }
 
     }

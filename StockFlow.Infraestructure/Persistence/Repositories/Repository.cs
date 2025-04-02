@@ -25,6 +25,8 @@ namespace StockFlow.Infraestructure.Persistence.Repositories
 
         public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
 
+        public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate) => await _dbSet.FirstOrDefaultAsync(predicate);
+
         public void Remove(T entity) => _dbSet.Remove(entity);
 
         public void Update(T entity) => _dbSet.Update(entity);

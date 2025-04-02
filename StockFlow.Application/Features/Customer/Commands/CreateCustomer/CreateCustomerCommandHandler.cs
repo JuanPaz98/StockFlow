@@ -5,7 +5,7 @@ using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
 {
-    public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerCommand, CreateCustomerModel>
+    public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerCommand, int>
     {
         private readonly IRepository<CustomerEntity> _repository;
         private readonly IMapper _mapper;
@@ -16,7 +16,7 @@ namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
             _mapper = mapper;
         }
 
-        public async Task<CreateCustomerModel> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
+        public async Task<int> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
         {
             var customerEntity = _mapper.Map<CustomerEntity>(request);
 
@@ -26,9 +26,8 @@ namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
             }
 
             await _repository.AddAsync(customerEntity);
-            await _repository.SaveChangesAsync();
 
-            return _mapper.Map<CreateCustomerModel>(customerEntity);
+            return await _repository.SaveChangesAsync();
         }
     }
 }

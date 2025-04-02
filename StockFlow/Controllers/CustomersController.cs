@@ -34,7 +34,7 @@ namespace StockFlow.Api.Controllers
             [FromBody] CreateCustomerModel model)
         {
             var customer = await _mediator.Send(new CreateCustomerCommand(model));
-            if (customer == null)
+            if (customer == 0)
             {
                 return BadRequest();
             }
@@ -51,6 +51,17 @@ namespace StockFlow.Api.Controllers
                 return BadRequest();
             }
             return StatusCode(StatusCodes.Status200OK, model);
+        }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var customer = await _mediator.Send(new DeleteCustomerCommand(id));
+            if (!customer)
+            {
+                return BadRequest();
+            }
+            return StatusCode(StatusCodes.Status200OK);
         }
     }
 }

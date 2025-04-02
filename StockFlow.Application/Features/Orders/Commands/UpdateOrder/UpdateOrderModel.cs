@@ -1,17 +1,15 @@
 ﻿using StockFlow.Application.Features.Orders.Commands.CreateOrder;
 using StockFlow.Application.Features.Orders.Dtos;
-using StockFlow.Domain.Enums;
 
-namespace StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId
+namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
 {
-    public class GetOrdersByCustomerIdModel
+    public class UpdateOrderModel
     {
-        public int CustomerId { get; set; }
+        public int Id { get; set; }
         public DateTime? OrderDate { get; set; }
         public string Status { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal PaidAmount { get; set; }
         public IEnumerable<OrderDetailsIdDto> OrderDetails { get; set; }
-
     }
 }

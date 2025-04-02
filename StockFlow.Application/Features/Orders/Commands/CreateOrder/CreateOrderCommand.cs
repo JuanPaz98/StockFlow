@@ -1,4 +1,4 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Orders.Commands.CreateOrder;
+using StockFlow.Application.Features.Orders.Dtos;
 
-public record CreateOrderCommand(CreateOrderModel model) : IRequest<CreateOrderModel>;
+public record CreateOrderCommand(OrderRequestDto model) : IRequest<OrderResponseDto>;

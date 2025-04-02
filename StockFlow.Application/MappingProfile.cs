@@ -5,6 +5,9 @@ using StockFlow.Application.Features.Customer.Commands.UpdateCustomer;
 using StockFlow.Application.Features.Customer.Queries.GetAllCustomers;
 using StockFlow.Application.Features.Customer.Queries.GetCustomerById;
 using StockFlow.Application.Features.Orders.Commands.CreateOrder;
+using StockFlow.Application.Features.Orders.Commands.UpdateOrder;
+using StockFlow.Application.Features.Orders.Dtos;
+using StockFlow.Application.Features.Orders.Queries.GetOrderById;
 using StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId;
 using StockFlow.Application.Features.Products.Commands.CreateProduct;
 using StockFlow.Application.Features.Products.Queries.GetAllProducts;
@@ -23,15 +26,23 @@ namespace StockFlow.Application
                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.model.Name))
                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.model.Email))
                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.model.Phone))
-               .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.model.Address));
+               .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.model.Address)).ReverseMap();
             CreateMap<CustomerEntity, UpdateCustomerModel>().ReverseMap();
             CreateMap<CustomerEntity, GetCustomerByIdModel>().ReverseMap();
             #endregion
 
             #region Orders
-            CreateMap<OrderEntity, CreateOrderModel>().ReverseMap();
-            CreateMap<OrderDetailEntity, OrderDetailsModel>().ReverseMap();
+            CreateMap<OrderEntity, OrderRequestDto>().ReverseMap();
+            CreateMap<OrderEntity, OrderResponseDto>().ReverseMap();
+            CreateMap<OrderDetailEntity, OrderDetailsDto>().ReverseMap();
+            CreateMap<OrderDetailEntity, OrderDetailsIdDto>().ReverseMap();
             CreateMap<OrderEntity, GetOrdersByCustomerIdModel>().ReverseMap();
+            CreateMap<OrderEntity, GetOrderByIdModel>()
+                .ForMember(des => des.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails)).ReverseMap();
+            CreateMap<OrderEntity, UpdateOrderModel>()
+                .ForMember(des => des.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails)).ReverseMap();
+
+
             #endregion
 
             #region Products
