@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Application.Features.Products.Commands.CreateProduct;
+using StockFlow.Application.Features.Products.Commands.UpdateProduct;
 
 namespace StockFlow.Api.Controllers
 {
@@ -43,6 +44,18 @@ namespace StockFlow.Api.Controllers
             }
 
             return StatusCode(StatusCodes.Status201Created, result);
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> Update(
+            [FromBody] UpdateProductModel model)
+        {
+            var result = await _mediator.Send(new UpdateProductCommand(model));
+            if (result is null)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest);
+            }
+            return StatusCode(StatusCodes.Status200OK, model);
         }
     }
 }
