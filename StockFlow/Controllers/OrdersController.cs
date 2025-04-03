@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Application.Features.Orders.Commands.CreateOrder;
 using StockFlow.Application.Features.Orders.Commands.UpdateOrder;
@@ -31,6 +32,7 @@ namespace StockFlow.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetById(
            int id)
