@@ -21,8 +21,5 @@ namespace StockFlow.Application.Features.Customer.Queries.GetAllCustomers
 
         public string? Address { get; set; }
 
-        public string PaymentStatus { get; set; } = null!;
-
-        public virtual ICollection<OrderEntity> Orders { get; set; } = new List<OrderEntity>();
     }
 }

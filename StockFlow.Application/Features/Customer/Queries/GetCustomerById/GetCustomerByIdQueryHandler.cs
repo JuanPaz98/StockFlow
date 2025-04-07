@@ -9,20 +9,33 @@ namespace StockFlow.Application.Features.Customer.Queries.GetCustomerById
     {
         private readonly IRepository<CustomerEntity> _repository;
         private readonly IMapper _mapper;
+        private readonly ICacheService _cacheService;
 
-        public GetCustomerByIdQueryHandler(IRepository<CustomerEntity> repository, IMapper mapper)
+        public GetCustomerByIdQueryHandler(IRepository<CustomerEntity> repository, IMapper mapper, ICacheService cache)
         {
             _repository = repository;
             _mapper = mapper;
+            _cacheService = cache;
         }
 
         public async Task<GetCustomerByIdModel> Handle(GetCustomerByIdQuery request, CancellationToken cancellationToken)
         {
-            var customer = await _repository.GetByIdAsync(request.id);         
+            var cacheKey = $"customers: {request.id}";
+
+            var customerCached = await _cacheService.GetAsync<GetCustomerByIdModel>(cacheKey);
+
+            if (customerCached != null)
+            {
+                return customerCached;
+            }
+
+            var customer = await _repository.GetByIdAsync(request.id);
             
             if (customer != null)
             {
-                return _mapper.Map<GetCustomerByIdModel>(customer);
+                var customerModel = _mapper.Map<GetCustomerByIdModel>(customer);
+                await _cacheService.SetAsync(cacheKey, customerModel);
+                return customerModel;
             }
             return new GetCustomerByIdModel();
         }

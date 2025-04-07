@@ -9,15 +9,17 @@ namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
     {
         private readonly IRepository<CustomerEntity> _repository;
         private readonly IMapper _mapper;
-
-        public CreateCustomerCommandHandler(IRepository<CustomerEntity> repository, IMapper mapper)
+        private readonly ICacheService _cache;
+        public CreateCustomerCommandHandler(IRepository<CustomerEntity> repository, IMapper mapper, ICacheService cache)
         {
             _repository = repository;
             _mapper = mapper;
+            _cache = cache;
         }
 
         public async Task<int> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
         {
+
             var customerEntity = _mapper.Map<CustomerEntity>(request);
 
             if (string.IsNullOrEmpty(customerEntity.Name))
