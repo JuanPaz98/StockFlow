@@ -1,23 +1,26 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Features.Orders.Dtos;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
 {
-    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderResponseDto>
+    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderWithIdDto>
     {
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IMapper _mapper;
+        private readonly ICacheService _cache;
 
-        public CreateOrderCommandHandler(IRepository<OrderEntity> orderRepository, IMapper mapper)
+        public CreateOrderCommandHandler(IRepository<OrderEntity> orderRepository, IMapper mapper, ICacheService cache)
         {
             _orderRepository = orderRepository;
             _mapper = mapper;
+            _cache = cache;
         }
 
-        public async Task<OrderResponseDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<OrderWithIdDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
             var orderEntity = _mapper.Map<OrderEntity>(request.model);
 
@@ -38,7 +41,11 @@ namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
             await _orderRepository.AddAsync(orderEntity);
             await _orderRepository.SaveChangesAsync(); 
 
-            return _mapper.Map<OrderResponseDto>(orderEntity);
+            var orderModel = _mapper.Map<OrderWithIdDto>(orderEntity);
+
+            await _cache.RemoveAsync(CacheKeys.OrdersByCustomerId(request.model.CustomerId));
+
+            return orderModel;
         }
 
     }

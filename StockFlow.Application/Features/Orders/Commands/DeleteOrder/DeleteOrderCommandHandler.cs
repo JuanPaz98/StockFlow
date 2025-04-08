@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.DeleteOrder
@@ -8,11 +9,13 @@ namespace StockFlow.Application.Features.Orders.Commands.DeleteOrder
     {
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IRepository<OrderDetailEntity> _orderDetailRepository;
+        private readonly ICacheService _cache;
 
-        public DeleteOrderCommandHandler(IRepository<OrderEntity> orderRepository, IRepository<OrderDetailEntity> orderDetailRepository)
+        public DeleteOrderCommandHandler(IRepository<OrderEntity> orderRepository, IRepository<OrderDetailEntity> orderDetailRepository, ICacheService cache)
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
+            _cache = cache;
         }
 
         public async Task<bool> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
@@ -31,6 +34,8 @@ namespace StockFlow.Application.Features.Orders.Commands.DeleteOrder
             }
 
             _orderRepository.Remove(order);
+
+            await _cache.RemoveAsync(CacheKeys.OrderById(request.id));
             return await _orderRepository.SaveChangesAsync() > 0;
             
         }

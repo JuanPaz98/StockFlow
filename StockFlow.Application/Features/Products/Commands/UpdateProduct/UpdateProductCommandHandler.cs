@@ -2,6 +2,7 @@
 using MediatR;
 using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Products.Commands.UpdateProduct
@@ -10,11 +11,13 @@ namespace StockFlow.Application.Features.Products.Commands.UpdateProduct
     {
         private readonly IRepository<ProductEntity> _repository;
         private readonly IMapper _mapper;
+        private readonly ICacheService _cache;
 
-        public UpdateProductCommandHandler(IRepository<ProductEntity> repository, IMapper mapper)
+        public UpdateProductCommandHandler(IRepository<ProductEntity> repository, IMapper mapper, ICacheService cache)
         {
             _repository = repository;
             _mapper = mapper;
+            _cache = cache;
         }
 
         public async Task<UpdateProductModel> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -30,6 +33,9 @@ namespace StockFlow.Application.Features.Products.Commands.UpdateProduct
 
             _repository.Update(product);
             await _repository.SaveChangesAsync();
+            await _cache.RemoveAsync(CacheKeys.AllProducts);
+            await _cache.RemoveAsync(CacheKeys.ProductById(request.model.Id));
+            await _cache.RemoveAsync(CacheKeys.ProductsByCategory(request.model.Category));
 
             return _mapper.Map<UpdateProductModel>(product);
         }

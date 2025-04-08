@@ -6,6 +6,7 @@ namespace StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId
 {
     public class GetOrdersByCustomerIdModel
     {
+        public int Id { get; set; }
         public int CustomerId { get; set; }
         public DateTime? OrderDate { get; set; }
         public string Status { get; set; }

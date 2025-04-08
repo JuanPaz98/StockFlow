@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.DeleteOrderDetails
@@ -23,6 +24,7 @@ namespace StockFlow.Application.Features.Orders.Commands.DeleteOrderDetails
             }
 
             _repository.Remove(detail);
+
             return await _repository.SaveChangesAsync() > 0;
         }
     }

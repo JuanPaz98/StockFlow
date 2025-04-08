@@ -1,5 +1,6 @@
 ﻿
 using MediatR;
 using StockFlow.Application.Features.Orders.Commands.UpdateOrder;
+using StockFlow.Application.Features.Orders.Dtos;
 
-public record UpdateOrderCommand(UpdateOrderModel model) : IRequest<UpdateOrderModel>;
+public record UpdateOrderCommand(OrderWithIdDto model) : IRequest<OrderWithIdDto>;

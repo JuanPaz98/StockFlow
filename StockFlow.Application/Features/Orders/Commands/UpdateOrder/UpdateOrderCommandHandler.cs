@@ -3,28 +3,33 @@ using EllipticCurve.Utils;
 using MediatR;
 using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Features.Orders.Commands.CreateOrder;
+using StockFlow.Application.Features.Orders.Dtos;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
 {
-    public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, UpdateOrderModel>
+    public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, OrderWithIdDto>
     {
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IRepository<OrderDetailEntity> _orderDetailRepository;
         private readonly IMapper _mapper;
+        private readonly ICacheService _cache;
 
         public UpdateOrderCommandHandler(
             IRepository<OrderEntity> orderRepository,
             IRepository<OrderDetailEntity> orderDetailRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ICacheService cache)
         {
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
             _mapper = mapper;
+            _cache = cache;
         }
 
-        public async Task<UpdateOrderModel> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<OrderWithIdDto> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
         {
             var order = await _orderRepository.GetByIdAsync(request.model.Id);
 
@@ -39,10 +44,15 @@ namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
 
             await _orderRepository.SaveChangesAsync();
 
-            return _mapper.Map<UpdateOrderModel>(order);
+            var orderModel = _mapper.Map<OrderWithIdDto>(order);
+
+            await _cache.RemoveAsync(CacheKeys.OrdersByCustomerId(request.model.CustomerId));
+            await _cache.RemoveAsync(CacheKeys.OrderById(request.model.Id));
+
+            return orderModel;
         }
 
-        private void UpdateOrderDetails(OrderEntity order, UpdateOrderModel model)
+        private void UpdateOrderDetails(OrderEntity order, OrderWithIdDto model)
         {
             var existingDetails = order.OrderDetails.ToList();
             var updatedDetails = model.OrderDetails.ToList();

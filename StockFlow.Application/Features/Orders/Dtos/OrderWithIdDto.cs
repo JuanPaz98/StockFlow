@@ -1,11 +1,9 @@
-﻿using StockFlow.Application.Features.Orders.Commands.CreateOrder;
-using StockFlow.Application.Features.Orders.Dtos;
-
-namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
+﻿namespace StockFlow.Application.Features.Orders.Dtos
 {
-    public class UpdateOrderModel
+    public class OrderWithIdDto
     {
         public int Id { get; set; }
+        public int CustomerId { get; set; }
         public DateTime? OrderDate { get; set; }
         public string Status { get; set; }
         public decimal TotalAmount { get; set; }

@@ -11,6 +11,7 @@ using StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId;
 using StockFlow.Application.Features.Products.Commands.CreateProduct;
 using StockFlow.Application.Features.Products.Commands.UpdateProduct;
 using StockFlow.Application.Features.Products.Queries.GetAllProducts;
+using StockFlow.Application.Features.Products.Queries.GetProductByCategory;
 using StockFlow.Application.Features.Products.Queries.GetProductById;
 
 namespace StockFlow.Application
@@ -33,13 +34,13 @@ namespace StockFlow.Application
 
             #region Orders
             CreateMap<OrderEntity, OrderRequestDto>().ReverseMap();
-            CreateMap<OrderEntity, OrderResponseDto>().ReverseMap();
+            CreateMap<OrderEntity, OrderWithIdDto>().ReverseMap();
             CreateMap<OrderDetailEntity, OrderDetailsDto>().ReverseMap();
             CreateMap<OrderDetailEntity, OrderDetailsIdDto>().ReverseMap();
             CreateMap<OrderEntity, GetOrdersByCustomerIdModel>().ReverseMap();
             CreateMap<OrderEntity, GetOrderByIdModel>()
                 .ForMember(des => des.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails)).ReverseMap();
-            CreateMap<OrderEntity, UpdateOrderModel>()
+            CreateMap<OrderEntity, OrderWithIdDto>()
                 .ForMember(des => des.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails)).ReverseMap();
             #endregion
 
@@ -48,6 +49,7 @@ namespace StockFlow.Application
             CreateMap<ProductEntity, CreateProductModel>().ReverseMap();
             CreateMap<ProductEntity, GetProductByIdModel>().ReverseMap();
             CreateMap<ProductEntity, UpdateProductModel>().ReverseMap();
+            CreateMap<ProductEntity, GetProductByCategoryModel>().ReverseMap();
             #endregion
         }
     }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
@@ -28,6 +29,8 @@ namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
             }
 
             await _repository.AddAsync(customerEntity);
+
+            await _cache.RemoveAsync(CacheKeys.AllCustomers);
 
             return await _repository.SaveChangesAsync();
         }

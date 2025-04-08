@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Customer.Queries.GetCustomerById
@@ -20,7 +21,7 @@ namespace StockFlow.Application.Features.Customer.Queries.GetCustomerById
 
         public async Task<GetCustomerByIdModel> Handle(GetCustomerByIdQuery request, CancellationToken cancellationToken)
         {
-            var cacheKey = $"customers: {request.id}";
+            var cacheKey = CacheKeys.CustomerById(request.id);
 
             var customerCached = await _cacheService.GetAsync<GetCustomerByIdModel>(cacheKey);
 

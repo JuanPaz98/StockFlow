@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Customer.Queries.GetAllCustomers
@@ -20,7 +21,7 @@ namespace StockFlow.Application.Features.Customer.Queries.GetAllCustomers
 
         public async Task<List<GetAllCustomersModel>> Handle(GetAllCustomersQuery request, CancellationToken cancellationToken)
         {
-            string cacheKey = "customers: all";
+            string cacheKey = CacheKeys.AllCustomers;
 
             var cachedCustomers = await _cacheService.GetAsync<List<GetAllCustomersModel>>(cacheKey);
             if (cachedCustomers != null)

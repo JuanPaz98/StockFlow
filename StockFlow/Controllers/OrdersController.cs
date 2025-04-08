@@ -32,7 +32,7 @@ namespace StockFlow.Api.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetById(
            int id)
@@ -53,7 +53,7 @@ namespace StockFlow.Api.Controllers
 
         [HttpPut("update")]
         public async Task<IActionResult> Update(
-            [FromBody] UpdateOrderModel model)
+            [FromBody] OrderWithIdDto model)
         {
             var result = await _mediator.Send(new UpdateOrderCommand(model));
 

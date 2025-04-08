@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Products.Queries.GetAllProducts
@@ -9,18 +10,32 @@ namespace StockFlow.Application.Features.Products.Queries.GetAllProducts
     {
         private readonly IRepository<ProductEntity> _repository;
         private readonly IMapper _mapper;
+        private readonly ICacheService _cache;
 
-        public GetAllProductsQueryHandler(IRepository<ProductEntity> repository, IMapper mapper)
+        public GetAllProductsQueryHandler(IRepository<ProductEntity> repository, IMapper mapper, ICacheService cache)
         {
             _repository = repository;
             _mapper = mapper;
+            _cache = cache;
         }
 
         public async Task<IEnumerable<GetAllProductsModel>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
-            var products = await _repository.GetAllAsync();
+            var productsKey = CacheKeys.AllProducts;
 
-            return _mapper.Map<IEnumerable<GetAllProductsModel>>(products);
+            var cachedProducts = await _cache.GetAsync<IEnumerable<GetAllProductsModel>>(productsKey);
+
+            if (cachedProducts != null)
+            {
+                return cachedProducts;
+            }
+
+            var products = await _repository.GetAllAsync();
+            var productsModels = _mapper.Map<IEnumerable<GetAllProductsModel>>(products);
+
+            await _cache.SetAsync(CacheKeys.AllProducts, productsModels);
+
+            return productsModels;
         }
     }
 }
