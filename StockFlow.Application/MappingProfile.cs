@@ -13,6 +13,10 @@ using StockFlow.Application.Features.Products.Commands.UpdateProduct;
 using StockFlow.Application.Features.Products.Queries.GetAllProducts;
 using StockFlow.Application.Features.Products.Queries.GetProductByCategory;
 using StockFlow.Application.Features.Products.Queries.GetProductById;
+using StockFlow.Application.Features.Suppliers.Commands.CreateSupplier;
+using StockFlow.Application.Features.Suppliers.Commands.UpdateSupplier;
+using StockFlow.Application.Features.Suppliers.Queries.GetAllSuppliers;
+using StockFlow.Application.Features.Suppliers.Queries.GetSupplierById;
 
 namespace StockFlow.Application
 {
@@ -50,6 +54,13 @@ namespace StockFlow.Application
             CreateMap<ProductEntity, GetProductByIdModel>().ReverseMap();
             CreateMap<ProductEntity, UpdateProductModel>().ReverseMap();
             CreateMap<ProductEntity, GetProductByCategoryModel>().ReverseMap();
+            #endregion
+
+            #region Suppliers
+            CreateMap<SupplierEntity, GetSupplierByIdModel>().ReverseMap();
+            CreateMap<SupplierEntity, GetAllSuppliersModel>().ReverseMap();
+            CreateMap<SupplierEntity, CreateSupplierModel>().ReverseMap();
+            CreateMap<SupplierEntity, UpdateSupplierModel>().ReverseMap();
             #endregion
         }
     }

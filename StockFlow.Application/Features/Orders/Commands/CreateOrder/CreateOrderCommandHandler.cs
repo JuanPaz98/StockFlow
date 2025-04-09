@@ -7,7 +7,7 @@ using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
 {
-    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderWithIdDto>
+    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, int>
     {
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IMapper _mapper;
@@ -20,7 +20,7 @@ namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
             _cache = cache;
         }
 
-        public async Task<OrderWithIdDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<int> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
             var orderEntity = _mapper.Map<OrderEntity>(request.model);
 
@@ -45,7 +45,7 @@ namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
 
             await _cache.RemoveAsync(CacheKeys.OrdersByCustomerId(request.model.CustomerId));
 
-            return orderModel;
+            return orderEntity.Id;
         }
 
     }
