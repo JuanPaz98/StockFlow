@@ -1,17 +1,16 @@
 ﻿using AutoMapper;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Features.Categories.Commands.CreateCategory;
 using StockFlow.Application.Features.Customer.Commands.CreateCustomer;
 using StockFlow.Application.Features.Customer.Commands.UpdateCustomer;
 using StockFlow.Application.Features.Customer.Queries.GetAllCustomers;
 using StockFlow.Application.Features.Customer.Queries.GetCustomerById;
-using StockFlow.Application.Features.Orders.Commands.UpdateOrder;
 using StockFlow.Application.Features.Orders.Dtos;
 using StockFlow.Application.Features.Orders.Queries.GetOrderById;
 using StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId;
 using StockFlow.Application.Features.Products.Commands.CreateProduct;
 using StockFlow.Application.Features.Products.Commands.UpdateProduct;
 using StockFlow.Application.Features.Products.Queries.GetAllProducts;
-using StockFlow.Application.Features.Products.Queries.GetProductByCategory;
 using StockFlow.Application.Features.Products.Queries.GetProductById;
 using StockFlow.Application.Features.Suppliers.Commands.CreateSupplier;
 using StockFlow.Application.Features.Suppliers.Commands.UpdateSupplier;
@@ -59,7 +58,9 @@ namespace StockFlow.Application
 
             #region Categories
             CreateMap<CategoryEntity, GetProductByCategoryModel>().ReverseMap();
-            CreateMap<CategoryEntity, CategoryDto>();
+            CreateMap<CategoryEntity, CategoryDto>().ReverseMap();
+            CreateMap<CategoryEntity, CreateCategoryModel>().ReverseMap();
+
             #endregion
 
             #region Suppliers
