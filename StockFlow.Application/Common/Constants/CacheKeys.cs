@@ -9,7 +9,11 @@
         // Products
         public static string AllProducts => "products: all"; 
         public static string ProductById(int id) => $"products: {id}"; 
-        public static string ProductsByCategory(string category) => $"products: {category}"; 
+        public static string ProductsByCategory(string category) => $"products: {category}";
+
+        // Categories
+        public static string AllCategories => "categories: all";
+        public static string CategoryById(int id) => $"category: {id}";
 
         // Orders
         public static string OrdersByCustomerId(int id) => $"orders: customer{id}"; 

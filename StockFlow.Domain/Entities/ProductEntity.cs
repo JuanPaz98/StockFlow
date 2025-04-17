@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using StockFlow.Domain.Entities;
 
 namespace StockFlow.Api.Domain.Entities;
 
@@ -19,10 +20,9 @@ public partial class ProductEntity
 
     public int Stock { get; set; }
 
-    [StringLength(50)]
-    public string? Category { get; set; }
-
     public int? SupplierId { get; set; }
+    public int CategoryId { get; set; }
+    public CategoryEntity Category { get; set; }
 
     [Column(TypeName = "datetime")]
     public DateTime? CreatedAt { get; set; }

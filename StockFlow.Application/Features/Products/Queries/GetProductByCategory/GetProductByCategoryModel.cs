@@ -1,17 +1,10 @@
-﻿namespace StockFlow.Application.Features.Products.Queries.GetProductByCategory
+﻿using StockFlow.Domain.Entities;
+
+public record GetProductByCategoryModel
 {
-    public class GetProductByCategoryModel
-    {
-        public int Id { get; set; }
-
-        public string Name { get; set; }
-
-        public string? Description { get; set; }
-
-        public decimal Price { get; set; }
-
-        public int Stock { get; set; }
-
-        public string? Category { get; set; }
-    }
+    public int Id { get; init; }
+    public string Name { get; init; }
+    public string? Description { get; init; }
+    public decimal Price { get; init; }
+    public int Stock { get; init; }
 }

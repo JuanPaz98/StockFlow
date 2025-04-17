@@ -15,10 +15,10 @@ WORKDIR /src
 COPY ["StockFlow/StockFlow.Api.csproj", "StockFlow/"]
 COPY ["StockFlow.Application/StockFlow.Application.csproj", "StockFlow.Application/"]
 COPY ["StockFlow.Domain/StockFlow.Domain.csproj", "StockFlow.Domain/"]
-COPY ["StockFlow.Infraestructure/StockFlow.Infraestructure.csproj", "StockFlow.Infraestructure/"]
+COPY ["StockFlow.Infraestructure/StockFlow.Infrastructure.csproj", "StockFlow.Infraestructure/"]
 RUN dotnet restore "./StockFlow/StockFlow.Api.csproj"
 COPY . .
-WORKDIR "/src/StockFlow"
+WORKDIR "/src/StockFlow" fdsfsdafas
 RUN dotnet build "./StockFlow.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage

@@ -3,18 +3,25 @@ using MediatR;
 using StockFlow.Api.Domain.Entities;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
+using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Features.Products.Commands.CreateProduct
 {
     public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, int>
     {
-        private readonly IRepository<ProductEntity> _repository;
+        private readonly IRepository<ProductEntity> _productsRepository;
+        private readonly IRepository<CategoryEntity> _categoriesRepository;
         private readonly IMapper _mapper;
         private readonly ICacheService _cache;
 
-        public CreateProductCommandHandler(IRepository<ProductEntity> repository, IMapper mapper, ICacheService cache)
+        public CreateProductCommandHandler(
+            IRepository<ProductEntity> repository,
+            IRepository<CategoryEntity> categoriesRepository,
+            IMapper mapper, 
+            ICacheService cache)
         {
-            _repository = repository;
+            _productsRepository = repository;
+            _categoriesRepository = categoriesRepository;
             _mapper = mapper;
             _cache = cache;
         }
@@ -22,11 +29,26 @@ namespace StockFlow.Application.Features.Products.Commands.CreateProduct
         public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
             var productEntity = _mapper.Map<ProductEntity>(request.Model);
-            await _repository.AddAsync(productEntity);
-            await _cache.RemoveAsync(CacheKeys.AllProducts);
-            await _cache.RemoveAsync(CacheKeys.ProductsByCategory(request.Model.Category));
 
-            return await _repository.SaveChangesAsync();
+            var cachedCategory = await _cache.GetAsync<CategoryDto>(CacheKeys.CategoryById(request.Model.CategoryId));
+            if (cachedCategory != null)
+            {
+                await _cache.RemoveAsync(CacheKeys.ProductsByCategory(cachedCategory.Name));
+            }
+            else
+            {
+                var category = await _categoriesRepository.GetByIdAsync(request.Model.CategoryId);
+                if (category != null)
+                {
+                    var categoryDto = _mapper.Map<CategoryDto>(category);
+                    await _cache.SetAsync(CacheKeys.CategoryById(request.Model.CategoryId), categoryDto);
+                    await _cache.RemoveAsync(CacheKeys.ProductsByCategory(categoryDto.Name));
+                }
+            }
+
+            await _productsRepository.AddAsync(productEntity);
+
+            return await _productsRepository.SaveChangesAsync();
         }
     }
 }

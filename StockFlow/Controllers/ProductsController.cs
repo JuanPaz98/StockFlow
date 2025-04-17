@@ -32,10 +32,10 @@ namespace StockFlow.Api.Controllers
             return StatusCode(StatusCodes.Status200OK, product);
         }
         
-        [HttpGet("get-by-category/{category}")]
-        public async Task<IActionResult> GetByCategory(string category)
+        [HttpGet("get-by-category/{categoryId}")]
+        public async Task<IActionResult> GetByCategory(int categoryId)
         {
-            var products = await _mediator.Send(new GetProductsByCategoryQuery(category));
+            var products = await _mediator.Send(new GetProductsByCategoryQuery(categoryId));
 
             return StatusCode(StatusCodes.Status200OK, products);
         }

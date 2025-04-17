@@ -32,7 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\StockFlow.Application\StockFlow.Application.csproj" />
     <ProjectReference Include="..\StockFlow.Domain\StockFlow.Domain.csproj" />
-    <ProjectReference Include="..\StockFlow.Infraestructure\StockFlow.Infraestructure.csproj" />
+    <ProjectReference Include="..\StockFlow.Infraestructure\StockFlow.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -22,6 +22,7 @@ public partial class StockFlowContext : DbContext
     public virtual DbSet<OrderDetailEntity> OrderDetails { get; set; }
 
     public virtual DbSet<ProductEntity> Products { get; set; }
+    public virtual DbSet<CategoryEntity> Categories { get; set; }
 
     public virtual DbSet<StockHistoryEntity> StockHistories { get; set; }
 
@@ -72,11 +73,32 @@ public partial class StockFlowContext : DbContext
 
         modelBuilder.Entity<ProductEntity>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Products__3214EC077C1922AB");
+            entity.HasKey(e => e.Id)
+            .HasName("PK__Products__3214EC077C1922AB");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.CreatedAt)
+            .HasDefaultValueSql("(getdate())");
 
-            entity.HasOne(d => d.Supplier).WithMany(p => p.Products).HasConstraintName("FK__Products__Suppli__4316F928");
+            entity.HasOne(d => d.Supplier)
+            .WithMany(p => p.Products)
+            .HasConstraintName("FK__Products__Suppli__4316F928");
+
+            entity.HasOne(p => p.Category)
+            .WithMany(c => c.Products)
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        });
+
+        modelBuilder.Entity<CategoryEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id)
+            .HasName("PK_Categories");
+
+            entity.HasMany(c => c.Products)
+            .WithOne(p => p.Category)
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<StockHistoryEntity>(entity =>
