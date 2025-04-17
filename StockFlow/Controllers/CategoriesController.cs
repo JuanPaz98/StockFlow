@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Application.Features.Categories.Commands.CreateCategory;
 
@@ -21,15 +20,15 @@ namespace StockFlow.Api.Controllers
         {
             var categories = await _mediator.Send(new GetAllCategoriesQuery());
             return Ok(categories);
-        } 
-        
-        [HttpGet("get-category-by-id/{id}")]
+        }
+
+        [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var category = await _mediator.Send(new GetCategoryByIdQuery(id));
             return Ok(category);
-        }  
-        
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> Create(
             [FromBody] CreateCategoryModel model)
@@ -37,8 +36,8 @@ namespace StockFlow.Api.Controllers
             var result = await _mediator.Send(new CreateCategoryCommand(model));
             return Ok(result);
         }
-        
-        [HttpPut("update-category")]
+
+        [HttpPut("update")]
         public async Task<IActionResult> Update(
             [FromBody] CategoryDto model)
         {
