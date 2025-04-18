@@ -14,8 +14,13 @@ namespace StockFlow.Infraestructure
         public static IServiceCollection AddInfraestructure(this IServiceCollection services, IConfiguration configuration)
         {
             // SQL Server
+            //services.AddDbContext<StockFlowContext>(options =>
+            //options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            
+            // Postgres
             services.AddDbContext<StockFlowContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             //Redis
