@@ -1,9 +1,6 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using StockFlow.Application.Features.Orders.Commands.CreateOrder;
-using StockFlow.Application.Features.Orders.Commands.UpdateOrder;
-using StockFlow.Application.Features.Orders.Dtos;
+using StockFlow.Application.Features.Dtos.Orders;
 
 namespace StockFlow.Api.Controllers
 {
@@ -24,11 +21,6 @@ namespace StockFlow.Api.Controllers
         {
             var result = await _mediator.Send(new CreateOrderCommand(model));
 
-            if (result == null)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest);
-            }
-
             return Ok(result);
         }
 
@@ -48,7 +40,7 @@ namespace StockFlow.Api.Controllers
         {
             var orders = await _mediator.Send(new GetOrdersByCustomerIdQuery(id));
 
-            return Ok(orders); 
+            return Ok(orders);
         }
 
         [HttpPut("update")]
@@ -59,7 +51,7 @@ namespace StockFlow.Api.Controllers
 
             return Ok(result);
         }
-        
+
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {

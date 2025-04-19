@@ -21,7 +21,7 @@ public partial class ProductEntity
     public int Stock { get; set; }
 
     public int? SupplierId { get; set; }
-    public int CategoryId { get; set; }
+    public int CategoryId { get; set; } = 1; // Uncategorized
     public CategoryEntity Category { get; set; }
 
     [Column(TypeName = "datetime")]

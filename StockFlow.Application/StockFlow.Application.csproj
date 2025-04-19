@@ -17,4 +17,9 @@
     <ProjectReference Include="..\StockFlow.Domain\StockFlow.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Payments\Commands\UpdatePayment\" />
+    <Folder Include="Features\Payments\Queries\GetPaymentsByOrderId\" />
+  </ItemGroup>
+
 </Project>

@@ -4,8 +4,8 @@ using MediatR;
 using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Orders;
 using StockFlow.Application.Features.Orders.Commands.CreateOrder;
-using StockFlow.Application.Features.Orders.Dtos;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder

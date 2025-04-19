@@ -1,6 +1,7 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StockFlow.Application.Features.Suppliers.Commands.CreateSupplier;
+using StockFlow.Application.Features.Suppliers.Commands.UpdateSupplier;
 
 namespace StockFlow.Api.Controllers
 {
@@ -21,14 +22,30 @@ namespace StockFlow.Api.Controllers
             var suppliers = await _mediator.Send(new GetAllSuppliersQuery());
 
             return Ok(suppliers);
-        } 
-        
+        }
+
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var supplier = await _mediator.Send(new GetSupplierByIdQuery(id));
 
             return Ok(supplier);
+        }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(
+            [FromBody] CreateSupplierModel model)
+        {
+            var result = await _mediator.Send(new CreateSupplierCommand(model));
+            return Ok(result);
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> Update(
+            [FromBody] UpdateSupplierModel model)
+        {
+            var result = await _mediator.Send(new UpdateSupplierCommad(model));
+            return Ok(result);
         }
     }
 }

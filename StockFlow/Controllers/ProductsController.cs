@@ -16,7 +16,7 @@ namespace StockFlow.Api.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("get-all")]
+        [HttpGet("get-all-products")]
         public async Task<IActionResult> GetAll()
         {
             var products = await _mediator.Send(new GetAllProductsQuery());
@@ -32,7 +32,7 @@ namespace StockFlow.Api.Controllers
             return StatusCode(StatusCodes.Status200OK, product);
         }
         
-        [HttpGet("get-by-category/{categoryId}")]
+        [HttpGet("get-by-category-id/{categoryId}")]
         public async Task<IActionResult> GetByCategory(int categoryId)
         {
             var products = await _mediator.Send(new GetProductsByCategoryQuery(categoryId));

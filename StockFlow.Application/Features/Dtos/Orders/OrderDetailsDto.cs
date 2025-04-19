@@ -1,4 +1,4 @@
-﻿namespace StockFlow.Application.Features.Orders.Dtos
+﻿namespace StockFlow.Application.Features.Dtos.Orders
 {
     public class OrderDetailsDto
     {

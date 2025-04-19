@@ -1,4 +1,4 @@
-﻿using StockFlow.Application.Features.Orders.Dtos;
+﻿using StockFlow.Application.Features.Dtos.Orders;
 
 namespace StockFlow.Application.Features.Orders.Queries.GetOrderById
 {

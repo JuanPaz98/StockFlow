@@ -141,8 +141,8 @@ public partial class StockFlowContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(e => e.Order)
-                .WithMany(p => p.Payments)
-                .HasForeignKey(e => e.Id)
+                .WithMany(o => o.Payments)
+                .HasForeignKey(p => p.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

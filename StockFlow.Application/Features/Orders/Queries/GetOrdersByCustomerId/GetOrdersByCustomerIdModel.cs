@@ -1,5 +1,5 @@
-﻿using StockFlow.Application.Features.Orders.Commands.CreateOrder;
-using StockFlow.Application.Features.Orders.Dtos;
+﻿using StockFlow.Application.Features.Dtos.Orders;
+using StockFlow.Application.Features.Orders.Commands.CreateOrder;
 using StockFlow.Domain.Enums;
 
 namespace StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId
