@@ -9,13 +9,13 @@ namespace StockFlow.Application.Features.Categories.Queries.GetCategoryById
     public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery, CategoryDto>
     {
         private readonly IRepository<CategoryEntity> _repository;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
         public GetCategoryByIdQueryHandler(IRepository<CategoryEntity> repository, ICacheService cache, IMapper mapper)
         {
             _repository = repository;
-            _cache = cache;
+            _cacheService = cache;
             _mapper = mapper;
         }
 
@@ -23,7 +23,7 @@ namespace StockFlow.Application.Features.Categories.Queries.GetCategoryById
         {
             string categoryKey = CacheKeys.CategoryById(request.Id);
 
-            var categoryCached = await _cache.GetAsync<CategoryDto>(categoryKey);
+            var categoryCached = await _cacheService.GetAsync<CategoryDto>(categoryKey);
 
             if (categoryCached != null)
             {
@@ -33,7 +33,7 @@ namespace StockFlow.Application.Features.Categories.Queries.GetCategoryById
             var category = await _repository.GetByIdAsync(request.Id);
 
             var customerModel = _mapper.Map<CategoryDto>(category);
-            await _cache.SetAsync(categoryKey, customerModel);
+            await _cacheService.SetAsync(categoryKey, customerModel);
             return customerModel;
         }
     }

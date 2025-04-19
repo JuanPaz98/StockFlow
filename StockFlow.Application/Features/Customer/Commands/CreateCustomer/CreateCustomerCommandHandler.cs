@@ -10,12 +10,12 @@ namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
     {
         private readonly IRepository<CustomerEntity> _repository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
         public CreateCustomerCommandHandler(IRepository<CustomerEntity> repository, IMapper mapper, ICacheService cache)
         {
             _repository = repository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<int> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
@@ -30,7 +30,7 @@ namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
 
             await _repository.AddAsync(customerEntity);
 
-            await _cache.RemoveAsync(CacheKeys.AllCustomers);
+            await _cacheService.RemoveAsync(CacheKeys.AllCustomers);
 
             return await _repository.SaveChangesAsync();
         }

@@ -9,6 +9,7 @@ using StockFlow.Application.Features.Dtos.Orders;
 using StockFlow.Application.Features.Orders.Queries.GetOrderById;
 using StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId;
 using StockFlow.Application.Features.Payments.Commands.CreatePayment;
+using StockFlow.Application.Features.Payments.Queries.GetPaymentsByOrderId;
 using StockFlow.Application.Features.Products.Commands.CreateProduct;
 using StockFlow.Application.Features.Products.Commands.UpdateProduct;
 using StockFlow.Application.Features.Products.Queries.GetAllProducts;
@@ -73,6 +74,7 @@ namespace StockFlow.Application
 
             #region Payments
             CreateMap<PaymentEntity, CreatePaymentModel>().ReverseMap();
+            CreateMap<PaymentEntity, GetPaymentsByOrderIdModel>().ReverseMap();
             #endregion
         }
     }

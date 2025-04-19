@@ -11,7 +11,7 @@ namespace StockFlow.Application.Features.Suppliers.Commands.UpdateSupplier
     {
         private readonly IRepository<SupplierEntity> _repository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
 
         public UpdateSupplierCommandHandler(
             IRepository<SupplierEntity> repository, 
@@ -20,7 +20,7 @@ namespace StockFlow.Application.Features.Suppliers.Commands.UpdateSupplier
         {
             _repository = repository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<UpdateSupplierModel> Handle(UpdateSupplierCommad request, CancellationToken cancellationToken)
@@ -36,8 +36,8 @@ namespace StockFlow.Application.Features.Suppliers.Commands.UpdateSupplier
 
             _repository.Update(supplier);
             await _repository.SaveChangesAsync();
-            await _cache.RemoveAsync(CacheKeys.AllSuppliers);
-            await _cache.RemoveAsync(CacheKeys.SupplierById(request.Model.Id));
+            await _cacheService.RemoveAsync(CacheKeys.AllSuppliers);
+            await _cacheService.RemoveAsync(CacheKeys.SupplierById(request.Model.Id));
 
             return _mapper.Map<UpdateSupplierModel>(supplier);
         }

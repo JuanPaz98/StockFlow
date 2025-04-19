@@ -10,20 +10,20 @@ namespace StockFlow.Application.Features.Products.Queries.GetProductById
     {
         private readonly IRepository<ProductEntity> _repository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
 
         public GetProductByIdQueryHandler(IRepository<ProductEntity> repository, IMapper mapper, ICacheService cache)
         {
             _repository = repository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<GetProductByIdModel> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
             var productKey = CacheKeys.ProductById(request.id);
 
-            var cachedProduct = await _cache.GetAsync<GetProductByIdModel>(productKey);
+            var cachedProduct = await _cacheService.GetAsync<GetProductByIdModel>(productKey);
 
             if(cachedProduct != null)
             {
@@ -33,7 +33,7 @@ namespace StockFlow.Application.Features.Products.Queries.GetProductById
             var product = await _repository.GetByIdAsync(request.id);
 
             var productModel = _mapper.Map<GetProductByIdModel>(product);
-            await _cache.SetAsync(productKey, productModel);
+            await _cacheService.SetAsync(productKey, productModel);
 
             return productModel;
         }

@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <Folder Include="Features\Payments\Commands\UpdatePayment\" />
-    <Folder Include="Features\Payments\Queries\GetPaymentsByOrderId\" />
   </ItemGroup>
 
 </Project>

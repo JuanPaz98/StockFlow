@@ -12,7 +12,7 @@ namespace StockFlow.Application.Features.Orders.Queries.GetOrderById
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IRepository<OrderDetailEntity> _orderDetailRepository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
 
         public GetOrderByIdQueryHandler(
             IRepository<OrderEntity> orderRepository, 
@@ -23,14 +23,14 @@ namespace StockFlow.Application.Features.Orders.Queries.GetOrderById
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<GetOrderByIdModel> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
         {
             var orderKey = CacheKeys.OrderById(request.Id);
 
-            var cachedOrder = await _cache.GetAsync<GetOrderByIdModel>(orderKey);
+            var cachedOrder = await _cacheService.GetAsync<GetOrderByIdModel>(orderKey);
 
             if (cachedOrder != null)
             {
@@ -47,7 +47,7 @@ namespace StockFlow.Application.Features.Orders.Queries.GetOrderById
 
             var orderModel = _mapper.Map<GetOrderByIdModel>(order);
 
-            await _cache.SetAsync(orderKey, orderModel);
+            await _cacheService.SetAsync(orderKey, orderModel);
 
             return orderModel;
         }

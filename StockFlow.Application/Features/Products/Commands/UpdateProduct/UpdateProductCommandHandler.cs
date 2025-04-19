@@ -13,7 +13,7 @@ namespace StockFlow.Application.Features.Products.Commands.UpdateProduct
         private readonly IRepository<ProductEntity> _repository;
         private readonly IRepository<CategoryEntity> _categoriesRepository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
 
         public UpdateProductCommandHandler(
             IRepository<ProductEntity> repository,
@@ -24,7 +24,7 @@ namespace StockFlow.Application.Features.Products.Commands.UpdateProduct
             _repository = repository;
             _categoriesRepository = categoriesRepository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<UpdateProductModel> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -37,25 +37,25 @@ namespace StockFlow.Application.Features.Products.Commands.UpdateProduct
             }
 
             // Last category cache
-            var lastCachedCategory = await _cache.GetAsync<CategoryDto>(CacheKeys.CategoryById(product.CategoryId));
+            var lastCachedCategory = await _cacheService.GetAsync<CategoryDto>(CacheKeys.CategoryById(product.CategoryId));
             if (lastCachedCategory != null)
             {
-                await _cache.RemoveAsync(CacheKeys.ProductsByCategory(lastCachedCategory.Name));
+                await _cacheService.RemoveAsync(CacheKeys.ProductsByCategory(lastCachedCategory.Name));
             }
 
             // New category cache
             var category = await _categoriesRepository.GetByIdAsync(request.Model.CategoryId);
             if (category != null)
             {
-                await _cache.RemoveAsync(CacheKeys.ProductsByCategory(category.Name));
+                await _cacheService.RemoveAsync(CacheKeys.ProductsByCategory(category.Name));
             }
 
             _mapper.Map(request.Model, product);
 
             _repository.Update(product);
             await _repository.SaveChangesAsync();
-            await _cache.RemoveAsync(CacheKeys.AllProducts);
-            await _cache.RemoveAsync(CacheKeys.ProductById(request.Model.Id));
+            await _cacheService.RemoveAsync(CacheKeys.AllProducts);
+            await _cacheService.RemoveAsync(CacheKeys.ProductById(request.Model.Id));
 
             return _mapper.Map<UpdateProductModel>(product);
         }

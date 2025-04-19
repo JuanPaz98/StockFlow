@@ -11,18 +11,18 @@ namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
     {
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
 
         public CreateOrderCommandHandler(IRepository<OrderEntity> orderRepository, IMapper mapper, ICacheService cache)
         {
             _orderRepository = orderRepository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<int> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
-            var orderEntity = _mapper.Map<OrderEntity>(request.model);
+            var orderEntity = _mapper.Map<OrderEntity>(request.Model);
 
             if (orderEntity == null)
             {
@@ -30,7 +30,7 @@ namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
             }
 
 
-            orderEntity.OrderDetails = request.model.OrderDetails.Select(detail =>
+            orderEntity.OrderDetails = request.Model.OrderDetails.Select(detail =>
             {
                 var orderDetailEntity = _mapper.Map<OrderDetailEntity>(detail);
                 orderDetailEntity.OrderId = orderEntity.Id;
@@ -43,7 +43,7 @@ namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
 
             var orderModel = _mapper.Map<OrderWithIdDto>(orderEntity);
 
-            await _cache.RemoveAsync(CacheKeys.OrdersByCustomerId(request.model.CustomerId));
+            await _cacheService.RemoveAsync(CacheKeys.OrdersByCustomerId(request.Model.CustomerId));
 
             return orderEntity.Id;
         }

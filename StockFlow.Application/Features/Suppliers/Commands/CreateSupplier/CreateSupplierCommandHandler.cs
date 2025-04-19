@@ -9,7 +9,7 @@ namespace StockFlow.Application.Features.Suppliers.Commands.CreateSupplier
     public class CreateSupplierCommandHandler: IRequestHandler<CreateSupplierCommand, int>
     {
         private readonly IRepository<SupplierEntity> _repository;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
         public CreateSupplierCommandHandler(
@@ -18,7 +18,7 @@ namespace StockFlow.Application.Features.Suppliers.Commands.CreateSupplier
             IMapper mapper)
         {
             _repository = repository;
-            _cache = cache;
+            _cacheService = cache;
             _mapper = mapper;
         }
 
@@ -28,7 +28,7 @@ namespace StockFlow.Application.Features.Suppliers.Commands.CreateSupplier
 
             await _repository.AddAsync(supplierEntity);
 
-            await _cache.RemoveAsync(CacheKeys.AllSuppliers);
+            await _cacheService.RemoveAsync(CacheKeys.AllSuppliers);
 
             return await _repository.SaveChangesAsync();
         }

@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
-using EllipticCurve.Utils;
 using MediatR;
 using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Features.Dtos.Orders;
-using StockFlow.Application.Features.Orders.Commands.CreateOrder;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
@@ -15,7 +13,7 @@ namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IRepository<OrderDetailEntity> _orderDetailRepository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
 
         public UpdateOrderCommandHandler(
             IRepository<OrderEntity> orderRepository,
@@ -26,7 +24,7 @@ namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<OrderWithIdDto> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
@@ -46,8 +44,8 @@ namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
 
             var orderModel = _mapper.Map<OrderWithIdDto>(order);
 
-            await _cache.RemoveAsync(CacheKeys.OrdersByCustomerId(request.model.CustomerId));
-            await _cache.RemoveAsync(CacheKeys.OrderById(request.model.Id));
+            await _cacheService.RemoveAsync(CacheKeys.OrdersByCustomerId(request.model.CustomerId));
+            await _cacheService.RemoveAsync(CacheKeys.OrderById(request.model.Id));
 
             return orderModel;
         }

@@ -26,5 +26,4 @@ public partial class CustomerEntity
 
     [InverseProperty("Customer")]
     public virtual ICollection<OrderEntity> Orders { get; set; } = new List<OrderEntity>();
-    public virtual ICollection<PaymentEntity> Payments { get; set; } = new List<PaymentEntity>();
 }

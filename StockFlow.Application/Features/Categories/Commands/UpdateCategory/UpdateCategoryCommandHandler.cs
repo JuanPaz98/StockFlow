@@ -11,13 +11,13 @@ namespace StockFlow.Application.Features.Categories.Commands.UpdateCategory
     public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, CategoryDto>
     {
         private readonly IRepository<CategoryEntity> _repository;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
         public UpdateCategoryCommandHandler(IRepository<CategoryEntity> repository, ICacheService cacheService, IMapper mapper)
         {
             _repository = repository;
-            _cache = cacheService;
+            _cacheService = cacheService;
             _mapper = mapper;
         }
 
@@ -35,8 +35,8 @@ namespace StockFlow.Application.Features.Categories.Commands.UpdateCategory
             _repository.Update(category);
             await _repository.SaveChangesAsync();
 
-            await _cache.RemoveAsync(CacheKeys.AllCategories);
-            await _cache.RemoveAsync(CacheKeys.CategoryById(request.Model.Id));
+            await _cacheService.RemoveAsync(CacheKeys.AllCategories);
+            await _cacheService.RemoveAsync(CacheKeys.CategoryById(request.Model.Id));
 
             return _mapper.Map<CategoryDto>(category);
         }

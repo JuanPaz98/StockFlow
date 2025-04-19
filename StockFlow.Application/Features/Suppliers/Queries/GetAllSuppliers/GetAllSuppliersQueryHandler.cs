@@ -10,13 +10,13 @@ namespace StockFlow.Application.Features.Suppliers.Queries.GetAllSuppliers
     public class GetAllSuppliersQueryHandler : IRequestHandler<GetAllSuppliersQuery, IEnumerable<GetAllSuppliersModel>>
     {
         private readonly IRepository<SupplierEntity> _repository;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
         public GetAllSuppliersQueryHandler(IRepository<SupplierEntity> repository, ICacheService cache, IMapper mapper)
         {
             _repository = repository;
-            _cache = cache;
+            _cacheService = cache;
             _mapper = mapper;
         }
 
@@ -24,7 +24,7 @@ namespace StockFlow.Application.Features.Suppliers.Queries.GetAllSuppliers
         {
             var suppliersKey = CacheKeys.AllSuppliers;
 
-            var cachedSuppliers = await _cache.GetAsync<IEnumerable<GetAllSuppliersModel>>(suppliersKey);
+            var cachedSuppliers = await _cacheService.GetAsync<IEnumerable<GetAllSuppliersModel>>(suppliersKey);
 
             if(cachedSuppliers != null)
             {
@@ -40,7 +40,7 @@ namespace StockFlow.Application.Features.Suppliers.Queries.GetAllSuppliers
 
             var suppliersModels = _mapper.Map<IEnumerable<GetAllSuppliersModel>>(suppliers);
 
-            await _cache.SetAsync(suppliersKey, suppliersModels);
+            await _cacheService.SetAsync(suppliersKey, suppliersModels);
 
             return suppliersModels;
         }

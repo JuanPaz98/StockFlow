@@ -12,7 +12,7 @@ namespace StockFlow.Application.Features.Products.Commands.CreateProduct
         private readonly IRepository<ProductEntity> _productsRepository;
         private readonly IRepository<CategoryEntity> _categoriesRepository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
 
         public CreateProductCommandHandler(
             IRepository<ProductEntity> repository,
@@ -23,17 +23,17 @@ namespace StockFlow.Application.Features.Products.Commands.CreateProduct
             _productsRepository = repository;
             _categoriesRepository = categoriesRepository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
             var productEntity = _mapper.Map<ProductEntity>(request.Model);
 
-            var cachedCategory = await _cache.GetAsync<CategoryDto>(CacheKeys.CategoryById(request.Model.CategoryId));
+            var cachedCategory = await _cacheService.GetAsync<CategoryDto>(CacheKeys.CategoryById(request.Model.CategoryId));
             if (cachedCategory != null)
             {
-                await _cache.RemoveAsync(CacheKeys.ProductsByCategory(cachedCategory.Name));
+                await _cacheService.RemoveAsync(CacheKeys.ProductsByCategory(cachedCategory.Name));
             }
             else
             {
@@ -41,8 +41,8 @@ namespace StockFlow.Application.Features.Products.Commands.CreateProduct
                 if (category != null)
                 {
                     var categoryDto = _mapper.Map<CategoryDto>(category);
-                    await _cache.SetAsync(CacheKeys.CategoryById(request.Model.CategoryId), categoryDto);
-                    await _cache.RemoveAsync(CacheKeys.ProductsByCategory(categoryDto.Name));
+                    await _cacheService.SetAsync(CacheKeys.CategoryById(request.Model.CategoryId), categoryDto);
+                    await _cacheService.RemoveAsync(CacheKeys.ProductsByCategory(categoryDto.Name));
                 }
             }
 

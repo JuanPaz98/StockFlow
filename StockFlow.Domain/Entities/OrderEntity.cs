@@ -9,7 +9,7 @@ public partial class OrderEntity
     [Key]
     public int Id { get; set; }
 
-    public int CustomerId { get; set; }
+    public int CustomerId { get; set; } = 1;
 
     [Column(TypeName = "datetime")]
     public DateTime? OrderDate { get; set; }

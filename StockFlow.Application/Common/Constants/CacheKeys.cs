@@ -2,25 +2,36 @@
 {
     public static class CacheKeys
     {
-        // Customers
+        #region Customers
         public static string AllCustomers => "customers: all";
         public static string CustomerById(int id) => $"customers: {id}";
+        #endregion
 
-        // Products
+        #region Products
         public static string AllProducts => "products: all"; 
         public static string ProductById(int id) => $"products: {id}"; 
         public static string ProductsByCategory(string category) => $"products: {category}";
+        #endregion
 
-        // Categories
+        #region Categories
         public static string AllCategories => "categories: all";
         public static string CategoryById(int id) => $"category: {id}";
+        #endregion
 
-        // Orders
+        #region Customers
         public static string OrdersByCustomerId(int id) => $"orders: customer{id}"; 
-        public static string OrderById(int id) => $"orders: {id}"; 
+        public static string OrderById(int id) => $"orders: {id}";
+        #endregion
 
-        // Suppliers
+        #region Suppliers
         public static string AllSuppliers => "suppliers: all"; 
-        public static string SupplierById(int id) => "suppliers: all"; 
+        public static string SupplierById(int id) => $"suppliers: {id}";
+        #endregion
+
+        #region Payments
+        public static string AllPayments => "payments: all";
+        public static string PaymentById(int id) => $"payment: {id}";
+        public static string PaymentsByOrderId(int id) => $"payment: order-id-{id}";
+        #endregion
     }
 }

@@ -9,13 +9,13 @@ namespace StockFlow.Application.Features.Categories.Queries.GetAllCategories
     class GetAllCategoriesQueryHandler : IRequestHandler<GetAllCategoriesQuery, IEnumerable<CategoryDto>>
     {
         private readonly IRepository<CategoryEntity> _repository;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
         public GetAllCategoriesQueryHandler(IRepository<CategoryEntity> repository, ICacheService cacheService, IMapper mapper)
         {
             _repository = repository;
-            _cache = cacheService;
+            _cacheService = cacheService;
             _mapper = mapper;
         }
 
@@ -23,7 +23,7 @@ namespace StockFlow.Application.Features.Categories.Queries.GetAllCategories
         {
             string categoriesKey = CacheKeys.AllCategories;
 
-            var cachedCategories = await _cache.GetAsync<IEnumerable<CategoryDto>>(categoriesKey);
+            var cachedCategories = await _cacheService.GetAsync<IEnumerable<CategoryDto>>(categoriesKey);
 
             if (cachedCategories != null)
             {
@@ -37,7 +37,7 @@ namespace StockFlow.Application.Features.Categories.Queries.GetAllCategories
             }
 
             var categoriesModels = _mapper.Map<IEnumerable<CategoryDto>>(categories);
-            await _cache.SetAsync(categoriesKey, categoriesModels);
+            await _cacheService.SetAsync(categoriesKey, categoriesModels);
 
             return categoriesModels;
         }

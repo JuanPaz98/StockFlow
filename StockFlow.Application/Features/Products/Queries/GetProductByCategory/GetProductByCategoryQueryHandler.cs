@@ -12,21 +12,21 @@ namespace StockFlow.Application.Features.Products.Queries.GetProductByCategory
     {
         private readonly IRepository<ProductEntity> _productsRepository;
         private readonly IRepository<CategoryEntity> _categoriesRepository;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
         public GetProductByCategoryQueryHandler(IRepository<ProductEntity> repository, ICacheService cache, IMapper mapper, IRepository<CategoryEntity> categoriesRepository)
         {
             _productsRepository = repository;
             _categoriesRepository = categoriesRepository;
-            _cache = cache;
+            _cacheService = cache;
             _mapper = mapper;
         }
 
         public async Task<IEnumerable<GetProductByCategoryModel>> Handle(GetProductsByCategoryQuery request, CancellationToken cancellationToken)
         {
             string categoryKey = CacheKeys.CategoryById(request.categoryId);
-            var cachedCategory = await _cache.GetAsync<CategoryDto>(categoryKey);
+            var cachedCategory = await _cacheService.GetAsync<CategoryDto>(categoryKey);
 
             if (cachedCategory is null)
             {
@@ -35,12 +35,12 @@ namespace StockFlow.Application.Features.Products.Queries.GetProductByCategory
                     return Enumerable.Empty<GetProductByCategoryModel>();
 
                 cachedCategory = _mapper.Map<CategoryDto>(category);
-                await _cache.SetAsync(categoryKey, cachedCategory);
+                await _cacheService.SetAsync(categoryKey, cachedCategory);
             }
 
             string productsKey = CacheKeys.ProductsByCategory(cachedCategory.Name);
 
-            var cachedProducts = await _cache.GetAsync<IEnumerable<GetProductByCategoryModel>>(productsKey);
+            var cachedProducts = await _cacheService.GetAsync<IEnumerable<GetProductByCategoryModel>>(productsKey);
             if (cachedProducts != null)
                 return cachedProducts;
 
@@ -49,7 +49,7 @@ namespace StockFlow.Application.Features.Products.Queries.GetProductByCategory
                 return Enumerable.Empty<GetProductByCategoryModel>();
 
             var productsModels = _mapper.Map<IEnumerable<GetProductByCategoryModel>>(products);
-            await _cache.SetAsync(productsKey, productsModels);
+            await _cacheService.SetAsync(productsKey, productsModels);
 
             return productsModels;
         }

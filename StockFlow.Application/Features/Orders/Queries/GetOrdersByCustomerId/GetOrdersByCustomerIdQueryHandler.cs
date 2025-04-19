@@ -11,7 +11,7 @@ namespace StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId
         private readonly IRepository<OrderEntity> _orderRepository;
         private readonly IRepository<OrderDetailEntity> _orderDetailRepository;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cache;
+        private readonly ICacheService _cacheService;
 
         public GetOrdersByCustomerIdQueryHandler(
             IRepository<OrderEntity> orderRepository, 
@@ -22,14 +22,14 @@ namespace StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
             _mapper = mapper;
-            _cache = cache;
+            _cacheService = cache;
         }
 
         public async Task<IEnumerable<GetOrdersByCustomerIdModel>> Handle(GetOrdersByCustomerIdQuery request, CancellationToken cancellationToken)
         {
             var ordersKey = CacheKeys.OrdersByCustomerId(request.id);
 
-            var cachedOrders = await _cache.GetAsync<IEnumerable<GetOrdersByCustomerIdModel>>(ordersKey);
+            var cachedOrders = await _cacheService.GetAsync<IEnumerable<GetOrdersByCustomerIdModel>>(ordersKey);
 
             if (cachedOrders != null)
             {
@@ -56,7 +56,7 @@ namespace StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId
 
             var ordersModels = _mapper.Map<List<GetOrdersByCustomerIdModel>>(orders);
 
-            await _cache.SetAsync(ordersKey, ordersModels);
+            await _cacheService.SetAsync(ordersKey, ordersModels);
 
             return ordersModels;
         }
