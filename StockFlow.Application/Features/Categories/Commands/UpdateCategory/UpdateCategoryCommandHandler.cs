@@ -1,44 +1,39 @@
 ﻿using AutoMapper;
 using MediatR;
 using SendGrid.Helpers.Errors.Model;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
-using StockFlow.Application.Features.Customer.Commands.UpdateCustomer;
 using StockFlow.Application.Interfaces;
-using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Features.Categories.Commands.UpdateCategory
 {
-    public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, CategoryDto>
+    public class UpdateCategoryCommandHandler(
+        IUnitOfWork unitOfWork, 
+        ICacheService cacheService, 
+        IMapper mapper) : IRequestHandler<UpdateCategoryCommand, Result<CategoryIdDto>>
     {
-        private readonly IRepository<CategoryEntity> _repository;
-        private readonly ICacheService _cacheService;
-        private readonly IMapper _mapper;
-
-        public UpdateCategoryCommandHandler(IRepository<CategoryEntity> repository, ICacheService cacheService, IMapper mapper)
+        public async Task<Result<CategoryIdDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-            _cacheService = cacheService;
-            _mapper = mapper;
-        }
-
-        public async Task<CategoryDto> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
-        {
-            var category = await _repository.GetByIdAsync(request.Model.Id);
+            var category = await unitOfWork.Categories.GetByIdAsync(request.Data.Id, cancellationToken);
 
             if (category is null)
             {
-                throw new NotFoundException($"Category with ID {request.Model.Id} not found.");
+                return Result<CategoryIdDto>.Failure($"Category with ID {request.Data.Id} not found.");
             }
 
-            _mapper.Map(request.Model, category);
+            mapper.Map(request.Data, category);
+            unitOfWork.Categories.Update(category);
+            var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken) > 0;
 
-            _repository.Update(category);
-            await _repository.SaveChangesAsync();
+            if (!saveResult)
+            {
+                return Result<CategoryIdDto>.Failure("An error occurred while updating the category.");
+            }
 
-            await _cacheService.RemoveAsync(CacheKeys.AllCategories);
-            await _cacheService.RemoveAsync(CacheKeys.CategoryById(request.Model.Id));
+            await cacheService.RemoveAsync(CacheKeys.AllCategories);
+            await cacheService.RemoveAsync(CacheKeys.CategoryById(request.Data.Id));
 
-            return _mapper.Map<CategoryDto>(category);
+            return Result<CategoryIdDto>.Success(mapper.Map<CategoryIdDto>(category));
         }
     }
 }

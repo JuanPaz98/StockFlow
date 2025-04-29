@@ -1,6 +1,6 @@
 ﻿
 using MediatR;
-using StockFlow.Application.Features.Products.Commands.UpdateProduct;
+using StockFlow.Application.Features.Dtos.Products;
 
-public record UpdateProductCommand(UpdateProductModel Model) : IRequest<UpdateProductModel>;   
+public record UpdateProductCommand(ProductRequestIdDto Data) : IRequest<Result<ProductRequestIdDto>>;
 

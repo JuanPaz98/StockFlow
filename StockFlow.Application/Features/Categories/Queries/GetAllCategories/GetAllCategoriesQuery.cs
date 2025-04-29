@@ -1,4 +1,4 @@
 ﻿
 using MediatR;
 
-public record GetAllCategoriesQuery() : IRequest<IEnumerable<CategoryDto>>;
+public record GetAllCategoriesQuery() : IRequest<Result<IEnumerable<CategoryIdDto>>>;

@@ -1,42 +1,42 @@
 ﻿using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
+using StockFlow.Domain.Repositories;
 
 namespace StockFlow.Application.Features.Orders.Commands.DeleteOrder
 {
-    public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, bool>
+    public class DeleteOrderCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService) : IRequestHandler<DeleteOrderCommand, Result<bool>>
     {
-        private readonly IRepository<OrderEntity> _orderRepository;
-        private readonly IRepository<OrderDetailEntity> _orderDetailRepository;
-        private readonly ICacheService _cacheService;
-
-        public DeleteOrderCommandHandler(IRepository<OrderEntity> orderRepository, IRepository<OrderDetailEntity> orderDetailRepository, ICacheService cache)
+        public async Task<Result<bool>> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
         {
-            _orderRepository = orderRepository;
-            _orderDetailRepository = orderDetailRepository;
-            _cacheService = cache;
-        }
-
-        public async Task<bool> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
-        {
-            var order = await _orderRepository.GetByIdAsync(request.id);
+            var order = await unitOfWork.Orders.GetByIdAsync(request.Id, cancellationToken);
             if (order == null)
             {
-                return false;
+                return Result<bool>.Failure($"Order with ID {request.Id} not found.");
             }
 
-            var orderDetails = _orderDetailRepository.FindAsync(od => od.OrderId == order.Id).Result;
+            var orderDetails = unitOfWork.OrderDetails.FindAsync(od => od.OrderId == order.Id, cancellationToken).Result;
 
             if (orderDetails.Any())
             {
-                _orderDetailRepository.RemoveRange(orderDetails);
+                unitOfWork.OrderDetails.RemoveRange(orderDetails);
             }
 
-            _orderRepository.Remove(order);
+            unitOfWork.Orders.Remove(order);
 
-            await _cacheService.RemoveAsync(CacheKeys.OrderById(request.id));
-            return await _orderRepository.SaveChangesAsync() > 0;
+            var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken) > 0;
+
+            if (!saveResult)
+            {
+                return Result<bool>.Failure("An error occurred while deleting the order.");
+            }
+
+            await cacheService.RemoveAsync(CacheKeys.OrderById(request.Id));
+            return Result<bool>.Success(saveResult);
             
         }
     }

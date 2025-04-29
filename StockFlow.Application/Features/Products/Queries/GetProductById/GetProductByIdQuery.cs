@@ -1,7 +1,4 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Products.Queries.GetProductById;
+using StockFlow.Application.Features.Dtos.Products;
 
-public record GetProductByIdQuery(int id): IRequest<GetProductByIdModel>;
-
-
-
+public record GetProductByIdQuery(int Id) : IRequest<Result<ProductResponseDto>>;

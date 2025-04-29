@@ -1,65 +1,106 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using StockFlow.Application.Features.Customer.Commands.CreateCustomer;
 using StockFlow.Application.Features.Customer.Commands.UpdateCustomer;
+using StockFlow.Application.Features.Dtos.Customers;
 
 namespace StockFlow.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class CustomersController : ControllerBase
+    public class CustomersController(IMediator _mediator) : ControllerBase
     {
-        private readonly IMediator _mediator;
-        public CustomersController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
-
-        [HttpGet("get-all-customers")]
+        [HttpGet("customers")]
         public async Task<IActionResult> GetAll()
         {
-            var customers = await _mediator.Send(new GetAllCustomersQuery());
-            return Ok(customers);
+            var result = await _mediator.Send(new GetAllCustomersQuery());
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+            return Ok(result.Value);
         }
 
-        [HttpGet("get-by-id/{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("customers/{id}")]
+        public async Task<IActionResult> GetById(
+            int id,
+            [FromServices] IValidator<GetCustomerByIdQuery> validator)
         {
-            var customer = await _mediator.Send(new GetCustomerByIdQuery(id));
-            return Ok(customer);
+            var query = new GetCustomerByIdQuery(id);
+            var validationResult = await validator.ValidateAsync(query);
+            
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await _mediator.Send(query);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+            return Ok(result.Value);
         }
 
-        [HttpPost("create")]
+        [HttpPost("customers")]
         public async Task<IActionResult> Create(
-            [FromBody] CreateCustomerModel model)
+            [FromBody] CustomerRequestDto data,
+            [FromServices] IValidator<CreateCustomerCommand> validator)
         {
-            var customer = await _mediator.Send(new CreateCustomerCommand(model));
-            if (customer == 0)
+            var command = new CreateCustomerCommand(data);
+            var validationResult = await validator.ValidateAsync(command);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(validationResult.Errors);
             }
-            return StatusCode(201);
+
+            var result = await _mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status201Created, result.Value);
         }
 
-        [HttpPut("update")]
+        [HttpPut("customers")]
         public async Task<IActionResult> Update(
-            [FromBody] UpdateCustomerModel model)
+            [FromBody] CustomerRequestIdDto data,
+            [FromServices] IValidator<UpdateCustomerCommand> validator)
         {
-            var customer = await _mediator.Send(new UpdateCustomerCommand(model));
-            if (customer == null)
+            var command = new UpdateCustomerCommand(data);
+
+            var validationResult = await validator.ValidateAsync(command);
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(validationResult.Errors);
             }
-            return StatusCode(StatusCodes.Status200OK, model);
+
+            var result = await _mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+            return StatusCode(StatusCodes.Status200OK, result.Value);
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("customers/{id}")]
+        public async Task<IActionResult> Delete(
+            int id,
+            [FromServices] IValidator<DeleteCustomerCommand> validator)
         {
-            var customer = await _mediator.Send(new DeleteCustomerCommand(id));
-            if (!customer)
+            var command = new DeleteCustomerCommand(id);
+            var validationResult = await validator.ValidateAsync(command);
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await _mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
             }
             return StatusCode(StatusCodes.Status200OK);
         }

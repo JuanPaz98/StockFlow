@@ -1,49 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using MediatR;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Payments;
 using StockFlow.Application.Interfaces;
-using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Features.Payments.Queries.GetPaymentsByOrderId
 {
-    class GetPaymentsByOrderIdQueryHandler : IRequestHandler<GetPaymentsByOrderIdQuery, IEnumerable<GetPaymentsByOrderIdModel>>
+    class GetPaymentsByOrderIdQueryHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        IMapper mapper) : IRequestHandler<GetPaymentsByOrderIdQuery, Result<IEnumerable<PaymentResponseDto>>>
     {
-        private readonly IRepository<PaymentEntity> _repository;
-        private readonly ICacheService _cacheService;
-        private readonly IMapper _mapper;
-
-        public GetPaymentsByOrderIdQueryHandler(IRepository<PaymentEntity> repository, ICacheService cacheService, IMapper mapper)
-        {
-            _repository = repository;
-            _cacheService = cacheService;
-            _mapper = mapper;
-        }
-
-        public async Task<IEnumerable<GetPaymentsByOrderIdModel>> Handle(GetPaymentsByOrderIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<PaymentResponseDto>>> Handle(GetPaymentsByOrderIdQuery request, CancellationToken cancellationToken)
         {
             string paymentKey = CacheKeys.PaymentsByOrderId(request.Id);
 
-            var cachedPayments = await _cacheService.GetAsync<IEnumerable<GetPaymentsByOrderIdModel>>(paymentKey);
+            var cachedPayments = await cacheService.GetAsync<IEnumerable<PaymentResponseDto>>(paymentKey);
 
-            if (cachedPayments != null) {
-                return cachedPayments;
-            }
-
-            var payments = await _repository.FindAsync(p => p.OrderId  == request.Id);
-            if (payments is null)
+            if (cachedPayments is not null)
             {
-                return Enumerable.Empty<GetPaymentsByOrderIdModel>();                
+                return Result<IEnumerable<PaymentResponseDto>>.Success(cachedPayments);
             }
 
-            var paymentsModels = _mapper.Map<IEnumerable<GetPaymentsByOrderIdModel>>(payments);
-            await _cacheService.SetAsync(paymentKey, paymentsModels);
+            var payments = await unitOfWork.Payments.FindAsync(p => p.OrderId == request.Id, cancellationToken);
 
-            return paymentsModels;
+            if (!payments.Any())
+            {
+                return Result<IEnumerable<PaymentResponseDto>>.Success(Enumerable.Empty<PaymentResponseDto>());
+            }
+
+            var paymentsModels = mapper.Map<IEnumerable<PaymentResponseDto>>(payments);
+            await cacheService.SetAsync(paymentKey, paymentsModels);
+
+            return Result<IEnumerable<PaymentResponseDto>>.Success(paymentsModels);
         }
     }
 }

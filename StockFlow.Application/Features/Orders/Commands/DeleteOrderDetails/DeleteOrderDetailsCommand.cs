@@ -1,5 +1,5 @@
 ﻿
 using MediatR;
 
-public record DeleteOrderDetailsCommand(int Id): IRequest<bool>;
+public record DeleteOrderDetailsCommand(int Id): IRequest<Result<bool>>;
 

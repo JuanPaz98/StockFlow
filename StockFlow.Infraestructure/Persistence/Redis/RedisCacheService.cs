@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using StackExchange.Redis;
-using StockFlow.Application.Interfaces;
+using StockFlow.Application.Cache;
 
 namespace StockFlow.Infraestructure.Persistence.Redis
 {

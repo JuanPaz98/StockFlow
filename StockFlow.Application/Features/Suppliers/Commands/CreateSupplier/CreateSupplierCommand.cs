@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Suppliers.Commands.CreateSupplier;
+using StockFlow.Application.Features.Dtos.Suppliers;
 
-public record CreateSupplierCommand(CreateSupplierModel Model) : IRequest<int>;
+public record CreateSupplierCommand(SupplierRequestDto Data) : IRequest<Result<int>>;
 

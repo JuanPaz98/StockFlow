@@ -1,41 +1,34 @@
 ﻿using AutoMapper;
 using MediatR;
-using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Products;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Products.Queries.GetAllProducts
 {
-    public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, IEnumerable<GetAllProductsModel>>
+    public class GetAllProductsQueryHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cacheService) : IRequestHandler<GetAllProductsQuery, Result<IEnumerable<ProductResponseDto>>>
     {
-        private readonly IRepository<ProductEntity> _repository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public GetAllProductsQueryHandler(IRepository<ProductEntity> repository, IMapper mapper, ICacheService cache)
-        {
-            _repository = repository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
-
-        public async Task<IEnumerable<GetAllProductsModel>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<ProductResponseDto>>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
             var productsKey = CacheKeys.AllProducts;
 
-            var cachedProducts = await _cacheService.GetAsync<IEnumerable<GetAllProductsModel>>(productsKey);
+            var cachedProducts = await cacheService.GetAsync<IEnumerable<ProductResponseDto>>(productsKey);
 
             if (cachedProducts != null)
             {
-                return cachedProducts;
+                return Result<IEnumerable<ProductResponseDto>>.Success(cachedProducts);
             }
 
-            var products = await _repository.GetAllAsync();
-            var productsModels = _mapper.Map<IEnumerable<GetAllProductsModel>>(products);
+            var products = await unitOfWork.Products.GetAllAsync(cancellationToken);
+            var productsModels = mapper.Map<IEnumerable<ProductResponseDto>>(products);
 
-            await _cacheService.SetAsync(CacheKeys.AllProducts, productsModels);
+            await cacheService.SetAsync(CacheKeys.AllProducts, productsModels);
 
-            return productsModels;
+            return Result<IEnumerable<ProductResponseDto>>.Success(productsModels);
         }
     }
 }

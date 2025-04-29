@@ -1,5 +1,5 @@
 ﻿
 using MediatR;
-using StockFlow.Application.Features.Suppliers.Commands.UpdateSupplier;
+using StockFlow.Application.Features.Dtos.Suppliers;
 
-public record UpdateSupplierCommad(UpdateSupplierModel Model) : IRequest<UpdateSupplierModel>;
+public record UpdateSupplierCommad(SupplierRequestIdDto Data) : IRequest<Result<SupplierRequestIdDto>>;

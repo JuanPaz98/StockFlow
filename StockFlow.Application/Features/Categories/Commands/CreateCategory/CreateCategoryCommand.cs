@@ -1,6 +1,6 @@
 ﻿
 using MediatR;
-using StockFlow.Application.Features.Categories.Commands.CreateCategory;
+using StockFlow.Application.Features.Dtos.Categories;
 
-public record CreateCategoryCommand(CreateCategoryModel Model) : IRequest<int>;
+public record CreateCategoryCommand(CategoryDto Data) : IRequest<Result<int>>;
 

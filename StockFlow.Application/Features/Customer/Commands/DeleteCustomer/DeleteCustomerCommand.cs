@@ -1,5 +1,5 @@
 ﻿
 using MediatR;
 
-public record DeleteCustomerCommand(int id): IRequest<bool>;
+public record DeleteCustomerCommand(int Id): IRequest<Result<bool>>;
     

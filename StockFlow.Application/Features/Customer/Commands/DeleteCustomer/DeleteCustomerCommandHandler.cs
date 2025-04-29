@@ -1,32 +1,28 @@
 ﻿using MediatR;
-using SendGrid.Helpers.Errors.Model;
-using StockFlow.Api.Domain.Entities;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Customer.Commands.DeleteCustomer
 {
-    public class DeleteCustomerCommandHandler : IRequestHandler<DeleteCustomerCommand, bool>
+    public class DeleteCustomerCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteCustomerCommand, Result<bool>>
     {
-        private readonly IRepository<CustomerEntity> _repository;
-
-        public DeleteCustomerCommandHandler(IRepository<CustomerEntity> repository)
+        public async Task<Result<bool>> Handle(DeleteCustomerCommand request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-        }
-
-        public async Task<bool> Handle(DeleteCustomerCommand request, CancellationToken cancellationToken)
-        {
-            var customer = await _repository.GetByIdAsync(request.id);
-
+            var customer = await unitOfWork.Customers.GetByIdAsync(request.Id, cancellationToken);
             if (customer is null)
             {
-                throw new NotFoundException($"Customer with ID {request.id} not found.");
+                return Result<bool>.Failure($"Customer with ID {request.Id} not found.");
             }
 
-            _repository.Remove(customer);
-            await _repository.SaveChangesAsync();
+            unitOfWork.Customers.Remove(customer);
 
-            return true;
+            var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken) > 0;
+
+            if (!saveResult)
+            {
+                return Result<bool>.Failure("An error occurred while deleting the customer.");
+            }
+
+            return Result<bool>.Success(saveResult);
         }
     }
 }

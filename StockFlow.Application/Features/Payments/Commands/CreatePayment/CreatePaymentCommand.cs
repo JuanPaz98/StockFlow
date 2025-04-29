@@ -1,4 +1,4 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Payments.Commands.CreatePayment;
+using StockFlow.Application.Features.Dtos.Payments;
 
-public record CreatePaymentCommand(CreatePaymentModel Model) : IRequest<int>;
+public record CreatePaymentCommand(PaymentRequestDto Data) : IRequest<Result<int>>;

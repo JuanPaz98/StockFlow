@@ -1,48 +1,89 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using StockFlow.Application.Features.Categories.Commands.CreateCategory;
+using StockFlow.Application.Features.Dtos.Categories;
 
 namespace StockFlow.Api.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class CategoriesController : ControllerBase
+    public class CategoriesController(IMediator mediator) : ControllerBase
     {
-        private readonly IMediator _mediator;
-
-        public CategoriesController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
-
-        [HttpGet("get-all-categories")]
+        [HttpGet("categories")]
         public async Task<IActionResult> GetAll()
         {
-            var categories = await _mediator.Send(new GetAllCategoriesQuery());
-            return Ok(categories);
+            var result = await mediator.Send(new GetAllCategoriesQuery());
+
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+            return Ok(result.Value);
         }
 
-        [HttpGet("get-by-id/{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("categories/{id}")]
+        public async Task<IActionResult> GetById(
+            int id,
+            [FromServices] IValidator<GetCategoryByIdQuery> validator)
         {
-            var category = await _mediator.Send(new GetCategoryByIdQuery(id));
-            return Ok(category);
+            var query = new GetCategoryByIdQuery(id);
+           
+            var validationResult = await validator.ValidateAsync(query);
+            
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(new GetCategoryByIdQuery(id));
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+            return Ok(result.Value);
         }
 
-        [HttpPost("create")]
+        [HttpPost("categories")]
         public async Task<IActionResult> Create(
-            [FromBody] CreateCategoryModel model)
+            [FromBody] CategoryDto request,
+            [FromServices] IValidator<CreateCategoryCommand> validator)
         {
-            var result = await _mediator.Send(new CreateCategoryCommand(model));
-            return Ok(result);
+            var command = new CreateCategoryCommand(request);
+
+            var validationResult = await validator.ValidateAsync(command);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status201Created, result.Value);
         }
 
-        [HttpPut("update")]
+        [HttpPut("categories")]
         public async Task<IActionResult> Update(
-            [FromBody] CategoryDto model)
+            [FromBody] CategoryIdDto request,
+            [FromServices] IValidator<UpdateCategoryCommand> validator)
         {
-            var result = await _mediator.Send(new UpdateCategoryCommand(model));
-            return Ok(result);
+            var command = new UpdateCategoryCommand(request);
+
+            var validationResult = await validator.ValidateAsync(command);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+            return Ok(result.Value);
         }
     }
 }

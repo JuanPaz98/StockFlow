@@ -1,48 +1,41 @@
 ﻿using AutoMapper;
 using MediatR;
-using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Suppliers;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Suppliers.Queries.GetAllSuppliers
 {
-    public class GetAllSuppliersQueryHandler : IRequestHandler<GetAllSuppliersQuery, IEnumerable<GetAllSuppliersModel>>
+    public class GetAllSuppliersQueryHandler(
+        IUnitOfWork unitOfWork, 
+        ICacheService cacheService, 
+        IMapper mapper) : IRequestHandler<GetAllSuppliersQuery, Result<IEnumerable<SupplierResponseDto>>>
     {
-        private readonly IRepository<SupplierEntity> _repository;
-        private readonly ICacheService _cacheService;
-        private readonly IMapper _mapper;
-
-        public GetAllSuppliersQueryHandler(IRepository<SupplierEntity> repository, ICacheService cache, IMapper mapper)
-        {
-            _repository = repository;
-            _cacheService = cache;
-            _mapper = mapper;
-        }
-
-        public async Task<IEnumerable<GetAllSuppliersModel>> Handle(GetAllSuppliersQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<SupplierResponseDto>>> Handle(GetAllSuppliersQuery request, CancellationToken cancellationToken)
         {
             var suppliersKey = CacheKeys.AllSuppliers;
 
-            var cachedSuppliers = await _cacheService.GetAsync<IEnumerable<GetAllSuppliersModel>>(suppliersKey);
+            var cachedSuppliers = await cacheService.GetAsync<IEnumerable<SupplierResponseDto>>(suppliersKey);
 
-            if(cachedSuppliers != null)
+            if (cachedSuppliers != null)
             {
-                return cachedSuppliers;
+                return Result<IEnumerable<SupplierResponseDto>>.Success(cachedSuppliers);
             }
 
-            var suppliers = await _repository.GetAllAsync();
+            var suppliers = await unitOfWork.Suppliers.GetAllAsync(cancellationToken);
 
             if (!suppliers.Any())
             {
-                return Enumerable.Empty<GetAllSuppliersModel>();
+                return Result<IEnumerable<SupplierResponseDto>>.Success(Enumerable.Empty<SupplierResponseDto>());
             }
 
-            var suppliersModels = _mapper.Map<IEnumerable<GetAllSuppliersModel>>(suppliers);
+            var suppliersModels = mapper.Map<IEnumerable<SupplierResponseDto>>(suppliers);
 
-            await _cacheService.SetAsync(suppliersKey, suppliersModels);
+            await cacheService.SetAsync(suppliersKey, suppliersModels);
 
-            return suppliersModels;
+            return Result<IEnumerable<SupplierResponseDto>>.Success(suppliersModels);
         }
     }
 }

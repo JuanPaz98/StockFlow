@@ -1,31 +1,24 @@
 ﻿using MediatR;
-using StockFlow.Api.Domain.Entities;
-using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.DeleteOrderDetails
 {
-    public class DeleteOrderDetailsCommandHandler : IRequestHandler<DeleteOrderDetailsCommand, bool>
+    public class DeleteOrderDetailsCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteOrderDetailsCommand, Result<bool>>
     {
-        private readonly IRepository<OrderDetailEntity> _repository;
-
-        public DeleteOrderDetailsCommandHandler(IRepository<OrderDetailEntity> repository)
+        public async Task<Result<bool>> Handle(DeleteOrderDetailsCommand request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-        }
+            var detail = await unitOfWork.OrderDetails.GetByIdAsync(request.Id, cancellationToken);
 
-        public async Task<bool> Handle(DeleteOrderDetailsCommand request, CancellationToken cancellationToken)
-        {
-            var detail = await _repository.GetByIdAsync(request.Id);
-
-            if(detail is null)
+            if (detail is null)
             {
-                return false;
+                return Result<bool>.Failure($"Order detail with ID {request.Id} not found.");
             }
 
-            _repository.Remove(detail);
+            unitOfWork.OrderDetails.Remove(detail);
 
-            return await _repository.SaveChangesAsync() > 0;
+            var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken) > 0;
+
+            return Result<bool>.Success(saveResult);
         }
     }
 }

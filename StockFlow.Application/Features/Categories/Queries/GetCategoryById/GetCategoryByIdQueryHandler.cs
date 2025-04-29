@@ -1,40 +1,41 @@
 ﻿using AutoMapper;
 using MediatR;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 using StockFlow.Domain.Entities;
+using StockFlow.Domain.Repositories;
 
 namespace StockFlow.Application.Features.Categories.Queries.GetCategoryById
 {
-    public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery, CategoryDto>
+    public class GetCategoryByIdQueryHandler(
+        IUnitOfWork unitOfWork, 
+        ICacheService cache, 
+        IMapper mapper) : IRequestHandler<GetCategoryByIdQuery, Result<CategoryIdDto>>
     {
-        private readonly IRepository<CategoryEntity> _repository;
-        private readonly ICacheService _cacheService;
-        private readonly IMapper _mapper;
-
-        public GetCategoryByIdQueryHandler(IRepository<CategoryEntity> repository, ICacheService cache, IMapper mapper)
-        {
-            _repository = repository;
-            _cacheService = cache;
-            _mapper = mapper;
-        }
-
-        public async Task<CategoryDto> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<CategoryIdDto>> Handle(GetCategoryByIdQuery request, 
+            CancellationToken cancellationToken)
         {
             string categoryKey = CacheKeys.CategoryById(request.Id);
 
-            var categoryCached = await _cacheService.GetAsync<CategoryDto>(categoryKey);
+            var categoryCached = await cache.GetAsync<CategoryIdDto>(categoryKey);
 
             if (categoryCached != null)
             {
-                return categoryCached;
+                return Result<CategoryIdDto>.Success(categoryCached);
             }
 
-            var category = await _repository.GetByIdAsync(request.Id);
+            var category = await unitOfWork.Categories.GetByIdAsync(request.Id, cancellationToken);
 
-            var customerModel = _mapper.Map<CategoryDto>(category);
-            await _cacheService.SetAsync(categoryKey, customerModel);
-            return customerModel;
+            if (category is null)
+            {
+                return Result<CategoryIdDto>.Failure($"Category with ID {request.Id} not found.");
+            }
+
+            var categoryModel = mapper.Map<CategoryIdDto>(category);
+            await cache.SetAsync(categoryKey, categoryModel);
+
+            return Result<CategoryIdDto>.Success(categoryModel);
         }
     }
 }

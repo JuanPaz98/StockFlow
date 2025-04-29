@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Customer.Queries.GetCustomerById;
+using StockFlow.Application.Features.Dtos.Customers;
 
-public record GetCustomerByIdQuery(int id): IRequest<GetCustomerByIdModel>;
+public record GetCustomerByIdQuery(int Id) : IRequest<Result<CustomerResponseDto>>;
 

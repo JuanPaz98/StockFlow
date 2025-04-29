@@ -2,52 +2,40 @@
 using MediatR;
 using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Features.Dtos.Orders;
 using StockFlow.Application.Interfaces;
+using StockFlow.Domain.Repositories;
 
 namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
 {
-    public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, OrderWithIdDto>
+    public class UpdateOrderCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cacheService) : IRequestHandler<UpdateOrderCommand, Result<OrderWithIdDto>>
     {
-        private readonly IRepository<OrderEntity> _orderRepository;
-        private readonly IRepository<OrderDetailEntity> _orderDetailRepository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public UpdateOrderCommandHandler(
-            IRepository<OrderEntity> orderRepository,
-            IRepository<OrderDetailEntity> orderDetailRepository,
-            IMapper mapper,
-            ICacheService cache)
+        public async Task<Result<OrderWithIdDto>> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
         {
-            _orderRepository = orderRepository;
-            _orderDetailRepository = orderDetailRepository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
-
-        public async Task<OrderWithIdDto> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
-        {
-            var order = await _orderRepository.GetByIdAsync(request.model.Id);
+            var order = await unitOfWork.Orders.GetByIdAsync(request.Data.Id, cancellationToken);
 
             if (order is null)
             {
-                throw new NotFoundException($"Order with ID {request.model.Id} not found.");
+                return Result<OrderWithIdDto>.Failure($"Order with ID {request.Data.Id} not found.");
             }
 
-            _mapper.Map(request.model, order);
+            mapper.Map(request.Data, order);
 
-            UpdateOrderDetails(order, request.model);
+            UpdateOrderDetails(order, request.Data);
 
-            await _orderRepository.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var orderModel = _mapper.Map<OrderWithIdDto>(order);
+            var orderModel = mapper.Map<OrderWithIdDto>(order);
 
-            await _cacheService.RemoveAsync(CacheKeys.OrdersByCustomerId(request.model.CustomerId));
-            await _cacheService.RemoveAsync(CacheKeys.OrderById(request.model.Id));
+            await cacheService.RemoveAsync(CacheKeys.OrdersByCustomerId(request.Data.CustomerId));
+            await cacheService.RemoveAsync(CacheKeys.OrderById(request.Data.Id));
 
-            return orderModel;
+            return Result<OrderWithIdDto>.Success(orderModel);
         }
 
         private void UpdateOrderDetails(OrderEntity order, OrderWithIdDto model)
@@ -69,11 +57,11 @@ namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
 
                 if (existingDetail != null)
                 {
-                    _mapper.Map(detailModel, existingDetail);
+                    mapper.Map(detailModel, existingDetail);
                 }
                 else
                 {
-                    var newDetail = _mapper.Map<OrderDetailEntity>(detailModel);
+                    var newDetail = mapper.Map<OrderDetailEntity>(detailModel);
                     newDetail.OrderId = order.Id;
                     order.OrderDetails.Add(newDetail);
                 }

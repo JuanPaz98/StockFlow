@@ -1,36 +1,28 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Suppliers.Commands.CreateSupplier
 {
-    public class CreateSupplierCommandHandler: IRequestHandler<CreateSupplierCommand, int>
+    public class CreateSupplierCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        IMapper mapper) : IRequestHandler<CreateSupplierCommand, Result<int>>
     {
-        private readonly IRepository<SupplierEntity> _repository;
-        private readonly ICacheService _cacheService;
-        private readonly IMapper _mapper;
-
-        public CreateSupplierCommandHandler(
-            IRepository<SupplierEntity> repository, 
-            ICacheService cache, 
-            IMapper mapper)
+        public async Task<Result<int>> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-            _cacheService = cache;
-            _mapper = mapper;
-        }
+            var supplierEntity = mapper.Map<SupplierEntity>(request.Data);
 
-        public async Task<int> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)
-        {
-            var supplierEntity = _mapper.Map<SupplierEntity>(request.Model);
+            await unitOfWork.Suppliers.AddAsync(supplierEntity, cancellationToken);
 
-            await _repository.AddAsync(supplierEntity);
+            await cacheService.RemoveAsync(CacheKeys.AllSuppliers);
 
-            await _cacheService.RemoveAsync(CacheKeys.AllSuppliers);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return await _repository.SaveChangesAsync();
+            return Result<int>.Success(supplierEntity.Id);
         }
     }
 }

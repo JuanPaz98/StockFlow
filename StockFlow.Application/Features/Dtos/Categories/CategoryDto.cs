@@ -1,6 +1,4 @@
-﻿
-public record CategoryDto
+﻿namespace StockFlow.Application.Features.Dtos.Categories
 {
-    public int Id { get; init; }
-    public string Name { get; init; }
+    public record CategoryDto(string Name);
 }

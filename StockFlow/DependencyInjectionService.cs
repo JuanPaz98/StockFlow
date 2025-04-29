@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StockFlow.Application.Features.Customer.Commands.CreateCustomer;
 
 namespace StockFlow.Api
 {
@@ -58,6 +60,9 @@ namespace StockFlow.Api
                 });
 
             services.AddAuthorization();
+
+            services.AddValidatorsFromAssemblyContaining<CreateCustomerCommandValidator>();
+
 
             return services;
         }

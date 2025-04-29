@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Orders.Queries.GetOrdersByCustomerId;
+using StockFlow.Application.Features.Dtos.Orders;
 
 
-public record GetOrdersByCustomerIdQuery(int id): IRequest<IEnumerable<GetOrdersByCustomerIdModel>>;
+public record GetOrdersByCustomerIdQuery(int Id) : IRequest<Result<IEnumerable<OrderWithIdDto>>>;
 

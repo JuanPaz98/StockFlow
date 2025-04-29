@@ -1,5 +1,5 @@
 ﻿
 using MediatR;
-using StockFlow.Application.Features.Payments.Queries.GetPaymentsByOrderId;
+using StockFlow.Application.Features.Dtos.Payments;
 
-public record GetPaymentsByOrderIdQuery(int Id): IRequest<IEnumerable<GetPaymentsByOrderIdModel>>;
+public record GetPaymentsByOrderIdQuery(int Id) : IRequest<Result<IEnumerable<PaymentResponseDto>>>;

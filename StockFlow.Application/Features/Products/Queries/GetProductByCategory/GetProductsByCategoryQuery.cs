@@ -1,6 +1,5 @@
 ﻿
 using MediatR;
-using StockFlow.Application.Features.Products.Queries.GetProductByCategory;
+using StockFlow.Application.Features.Dtos.Products;
 
-public record GetProductsByCategoryQuery(int categoryId): IRequest<IEnumerable<GetProductByCategoryModel>>;
-
+public record GetProductsByCategoryQuery(int CategoryId) : IRequest<Result<IEnumerable<ProductResponseDto>>>;

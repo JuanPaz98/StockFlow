@@ -1,55 +1,41 @@
 ﻿using AutoMapper;
-using EllipticCurve;
 using MediatR;
-using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Orders;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Queries.GetOrderById
 {
-    public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, GetOrderByIdModel>
+    public class GetOrderByIdQueryHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cache) : IRequestHandler<GetOrderByIdQuery, Result<OrderWithIdDto>>
     {
-        private readonly IRepository<OrderEntity> _orderRepository;
-        private readonly IRepository<OrderDetailEntity> _orderDetailRepository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public GetOrderByIdQueryHandler(
-            IRepository<OrderEntity> orderRepository, 
-            IRepository<OrderDetailEntity> orderDetailRepository,
-            IMapper mapper,
-            ICacheService cache)
-        {
-            _orderRepository = orderRepository;
-            _orderDetailRepository = orderDetailRepository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
-
-        public async Task<GetOrderByIdModel> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<OrderWithIdDto>> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
         {
             var orderKey = CacheKeys.OrderById(request.Id);
 
-            var cachedOrder = await _cacheService.GetAsync<GetOrderByIdModel>(orderKey);
+            var cachedOrder = await cache.GetAsync<OrderWithIdDto>(orderKey);
 
             if (cachedOrder != null)
             {
-                return cachedOrder;
+                return Result<OrderWithIdDto>.Success(cachedOrder);
             }
 
-            var order = await _orderRepository.GetByIdAsync(request.Id);
+            var order = await unitOfWork.Orders.GetByIdAsync(request.Id, cancellationToken);
             if (order == null)
             {
-                throw new Exception();
+                return Result<OrderWithIdDto>.Failure($"Order with ID {request.Id} not found.");
             }
-            var orderDetails = await _orderDetailRepository.FindAsync(detail => detail.OrderId == order.Id);
-            order.OrderDetails = orderDetails.ToList();
+            var orderDetails = await unitOfWork.OrderDetails.FindAsync(detail => detail.OrderId == order.Id, cancellationToken);
+            order.OrderDetails = [.. orderDetails];
 
-            var orderModel = _mapper.Map<GetOrderByIdModel>(order);
+            var orderModel = mapper.Map<OrderWithIdDto>(order);
 
-            await _cacheService.SetAsync(orderKey, orderModel);
+            await cache.SetAsync(orderKey, orderModel);
 
-            return orderModel;
+            return Result<OrderWithIdDto>.Success(orderModel);
         }
     }
 }

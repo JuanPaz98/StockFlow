@@ -1,41 +1,34 @@
 ﻿using AutoMapper;
 using MediatR;
-using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Customers;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Customer.Queries.GetAllCustomers
 {
-    public class GetAllCustomersQueryHandler : IRequestHandler<GetAllCustomersQuery, List<GetAllCustomersModel>>
+    public class GetAllCustomersQueryHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cacheService) : IRequestHandler<GetAllCustomersQuery, Result<IEnumerable<CustomerResponseDto>>>
     {
-        private readonly IRepository<CustomerEntity> _repository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public GetAllCustomersQueryHandler(IRepository<CustomerEntity> repository,  IMapper mapper, ICacheService cacheService)
-        {
-            _repository = repository;
-            _mapper = mapper;
-            _cacheService = cacheService;
-        }
-
-        public async Task<List<GetAllCustomersModel>> Handle(GetAllCustomersQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<CustomerResponseDto>>> Handle(GetAllCustomersQuery request, CancellationToken cancellationToken)
         {
             string cacheKey = CacheKeys.AllCustomers;
 
-            var cachedCustomers = await _cacheService.GetAsync<List<GetAllCustomersModel>>(cacheKey);
-            if (cachedCustomers != null)
+            var cachedCustomers = await cacheService.GetAsync<IEnumerable<CustomerResponseDto>>(cacheKey);
+            if (cachedCustomers.Any())
             {
-                return cachedCustomers;
+                return Result<IEnumerable<CustomerResponseDto>>.Success(cachedCustomers);
             }
 
-            var customers = await _repository.GetAllAsync();
+            var customers = await unitOfWork.Customers.GetAllAsync(cancellationToken);
 
-            var customerModels = _mapper.Map<List<GetAllCustomersModel>>(customers);
+            var customerModels = mapper.Map<IEnumerable<CustomerResponseDto>>(customers);
 
-            await _cacheService.SetAsync(cacheKey, customerModels);
+            await cacheService.SetAsync(cacheKey, customerModels);
 
-            return customerModels;
+            return Result<IEnumerable<CustomerResponseDto>>.Success(customerModels);
         }
     }
 }

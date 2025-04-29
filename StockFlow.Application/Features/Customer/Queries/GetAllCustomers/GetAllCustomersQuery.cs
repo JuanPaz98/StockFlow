@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Customer.Queries.GetAllCustomers;
+using StockFlow.Application.Features.Dtos.Customers;
 
-public record GetAllCustomersQuery(): IRequest<List<GetAllCustomersModel>>;
+public record GetAllCustomersQuery() : IRequest<Result<IEnumerable<CustomerResponseDto>>>;
 

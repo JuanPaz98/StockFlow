@@ -1,38 +1,34 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
+using StockFlow.Domain.Repositories;
 
 namespace StockFlow.Application.Features.Customer.Commands.CreateCustomer
 {
-    public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerCommand, int>
+    public class CreateCustomerCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cacheService) : IRequestHandler<CreateCustomerCommand, Result<int>>
     {
-        private readonly IRepository<CustomerEntity> _repository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-        public CreateCustomerCommandHandler(IRepository<CustomerEntity> repository, IMapper mapper, ICacheService cache)
+        public async Task<Result<int>> Handle(CreateCustomerCommand request,
+            CancellationToken cancellationToken)
         {
-            _repository = repository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
+            var customerEntity = mapper.Map<CustomerEntity>(request.Data);
 
-        public async Task<int> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
-        {
+            await unitOfWork.Customers.AddAsync(customerEntity, cancellationToken);
+            var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken) > 0;
 
-            var customerEntity = _mapper.Map<CustomerEntity>(request);
-
-            if (string.IsNullOrEmpty(customerEntity.Name))
+            if (!saveResult)
             {
-                throw new Exception("Name is required");
+                return Result<int>.Failure("An error occurred while creating the customer.");
             }
 
-            await _repository.AddAsync(customerEntity);
+            await cacheService.RemoveAsync(CacheKeys.AllCustomers);
 
-            await _cacheService.RemoveAsync(CacheKeys.AllCustomers);
-
-            return await _repository.SaveChangesAsync();
+            return Result<int>.Success(customerEntity.Id);
         }
     }
 }

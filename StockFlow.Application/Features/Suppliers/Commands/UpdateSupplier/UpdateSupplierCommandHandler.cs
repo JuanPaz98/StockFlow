@@ -2,44 +2,36 @@
 using MediatR;
 using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Suppliers;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Suppliers.Commands.UpdateSupplier
 {
-    public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierCommad, UpdateSupplierModel>
+    public class UpdateSupplierCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cacheService) : IRequestHandler<UpdateSupplierCommad, Result<SupplierRequestIdDto>>
     {
-        private readonly IRepository<SupplierEntity> _repository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public UpdateSupplierCommandHandler(
-            IRepository<SupplierEntity> repository, 
-            IMapper mapper, 
-            ICacheService cache)
+        public async Task<Result<SupplierRequestIdDto>> Handle(UpdateSupplierCommad request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
-
-        public async Task<UpdateSupplierModel> Handle(UpdateSupplierCommad request, CancellationToken cancellationToken)
-        {
-            var supplier = await _repository.GetByIdAsync(request.Model.Id);
+            var supplier = await unitOfWork.Suppliers.GetByIdAsync(request.Data.Id, cancellationToken);
 
             if (supplier is null)
             {
-                throw new NotFoundException($"Supplier with ID {request.Model.Id} not found.");
+                return Result<SupplierRequestIdDto>.Failure($"Supplier with ID {request.Data.Id} not found.");
             }
 
-            _mapper.Map(request.Model, supplier);
+            mapper.Map(request.Data, supplier);
 
-            _repository.Update(supplier);
-            await _repository.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.AllSuppliers);
-            await _cacheService.RemoveAsync(CacheKeys.SupplierById(request.Model.Id));
+            unitOfWork.Suppliers.Update(supplier);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<UpdateSupplierModel>(supplier);
+            await cacheService.RemoveAsync(CacheKeys.AllSuppliers);
+            await cacheService.RemoveAsync(CacheKeys.SupplierById(request.Data.Id));
+
+            return Result<SupplierRequestIdDto>.Success(mapper.Map<SupplierRequestIdDto>(supplier));
         }
     }
 }

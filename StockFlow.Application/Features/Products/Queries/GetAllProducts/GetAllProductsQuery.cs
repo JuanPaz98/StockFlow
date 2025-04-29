@@ -1,6 +1,6 @@
 ﻿
 using MediatR;
-using StockFlow.Application.Features.Products.Queries.GetAllProducts;
+using StockFlow.Application.Features.Dtos.Products;
 
-public record GetAllProductsQuery(): IRequest<IEnumerable<GetAllProductsModel>>;
+public record GetAllProductsQuery() : IRequest<Result<IEnumerable<ProductResponseDto>>>;
 

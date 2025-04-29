@@ -1,7 +1,7 @@
 ﻿
 using MediatR;
-using StockFlow.Application.Features.Suppliers.Queries.GetSupplierById;
+using StockFlow.Application.Features.Dtos.Suppliers;
 
-public record GetSupplierByIdQuery(int Id) : IRequest<GetSupplierByIdModel>;
-    
+public record GetSupplierByIdQuery(int Id) : IRequest<Result<SupplierResponseDto>>;
+
 

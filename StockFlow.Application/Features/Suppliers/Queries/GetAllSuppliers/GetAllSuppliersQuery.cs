@@ -1,6 +1,6 @@
 ﻿
 using MediatR;
-using StockFlow.Application.Features.Suppliers.Queries.GetAllSuppliers;
+using StockFlow.Application.Features.Dtos.Suppliers;
 
-public record GetAllSuppliersQuery(): IRequest<IEnumerable<GetAllSuppliersModel>>;
+public record GetAllSuppliersQuery() : IRequest<Result<IEnumerable<SupplierResponseDto>>>;
 

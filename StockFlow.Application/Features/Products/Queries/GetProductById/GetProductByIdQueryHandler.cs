@@ -1,41 +1,34 @@
 ﻿using AutoMapper;
 using MediatR;
-using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Products;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Products.Queries.GetProductById
 {
-    public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, GetProductByIdModel>
+    public class GetProductByIdQueryHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cacheService) : IRequestHandler<GetProductByIdQuery, Result<ProductResponseDto>>
     {
-        private readonly IRepository<ProductEntity> _repository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public GetProductByIdQueryHandler(IRepository<ProductEntity> repository, IMapper mapper, ICacheService cache)
+        public async Task<Result<ProductResponseDto>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
+            var productKey = CacheKeys.ProductById(request.Id);
 
-        public async Task<GetProductByIdModel> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
-        {
-            var productKey = CacheKeys.ProductById(request.id);
+            var cachedProduct = await cacheService.GetAsync<ProductResponseDto>(productKey);
 
-            var cachedProduct = await _cacheService.GetAsync<GetProductByIdModel>(productKey);
-
-            if(cachedProduct != null)
+            if (cachedProduct is not null)
             {
-                return cachedProduct;
+                return Result<ProductResponseDto>.Success(cachedProduct);
             }
 
-            var product = await _repository.GetByIdAsync(request.id);
+            var product = await unitOfWork.Products.GetByIdAsync(request.Id, cancellationToken);
 
-            var productModel = _mapper.Map<GetProductByIdModel>(product);
-            await _cacheService.SetAsync(productKey, productModel);
+            var productModel = mapper.Map<ProductResponseDto>(product);
+            await cacheService.SetAsync(productKey, productModel);
 
-            return productModel;
+            return Result<ProductResponseDto>.Success(productModel);
         }
     }
 }

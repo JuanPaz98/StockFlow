@@ -1,41 +1,35 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Suppliers;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Suppliers.Queries.GetSupplierById
 {
-    public class GetSupplierByIdQueryHandler : IRequestHandler<GetSupplierByIdQuery, GetSupplierByIdModel>
+    public class GetSupplierByIdQueryHandler(
+        IUnitOfWork unitOfWork, 
+        ICacheService cacheService, 
+        IMapper mapper) : IRequestHandler<GetSupplierByIdQuery, Result<SupplierResponseDto>>
     {
-        private readonly IRepository<SupplierEntity> _repository;
-        private readonly ICacheService _cacheService;
-        private readonly IMapper _mapper;
-
-        public GetSupplierByIdQueryHandler(IRepository<SupplierEntity> repository, ICacheService cache, IMapper mapper)
-        {
-            _repository = repository;
-            _cacheService = cache;
-            _mapper = mapper;
-        }
-
-        public async Task<GetSupplierByIdModel> Handle(GetSupplierByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<SupplierResponseDto>> Handle(GetSupplierByIdQuery request, CancellationToken cancellationToken)
         {
             var supplierKey = CacheKeys.SupplierById(request.Id);
-            var supplierCached = await _cacheService.GetAsync<GetSupplierByIdModel>(supplierKey);
+            var supplierCached = await cacheService.GetAsync<SupplierResponseDto>(supplierKey);
 
-            if(supplierCached !=  null)
+            if (supplierCached is not null)
             {
-                return supplierCached;
+                return Result<SupplierResponseDto>.Success(supplierCached);
             }
 
-            var supplier = await _repository.GetByIdAsync(request.Id);
+            var supplier = await unitOfWork.Suppliers.GetByIdAsync(request.Id, cancellationToken);
 
-            var supplierModel = _mapper.Map<GetSupplierByIdModel>(supplier);
+            var supplierModel = mapper.Map<SupplierResponseDto>(supplier);
 
-            await _cacheService.SetAsync(supplierKey, supplierModel);
+            await cacheService.SetAsync(supplierKey, supplierModel);
 
-            return supplierModel;
+            return Result<SupplierResponseDto>.Success(supplierModel);
         }
     }
 }

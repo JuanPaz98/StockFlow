@@ -1,36 +1,39 @@
 ﻿using AutoMapper;
 using MediatR;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Interfaces;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Features.Categories.Commands.CreateCategory
 {
-    public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, int>
+    public class CreateCategoryCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        IMapper mapper) : IRequestHandler<CreateCategoryCommand, Result<int>>
     {
-        private readonly IRepository<CategoryEntity> _repository;
-        private readonly ICacheService _cacheService;
-        private readonly IMapper _mapper;
-
-        public CreateCategoryCommandHandler(IRepository<CategoryEntity> repository, ICacheService cacheService, IMapper mapper)
+        public async Task<Result<int>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-            _cacheService = cacheService;
-            _mapper = mapper;
-        }
+            var categoryEntity = mapper.Map<CategoryEntity>(request.Data);
 
-        public async Task<int> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
-        {
-            var categoryEntity = _mapper.Map<CategoryEntity>(request.Model);
-            if (categoryEntity == null) 
+            var existingCategory = await unitOfWork.Categories.FindAsync(c => c.Name == categoryEntity.Name, cancellationToken);
+
+            if(existingCategory.Any())
             {
-                throw new ArgumentNullException(nameof(categoryEntity));
+                return Result<int>.Failure($"Category with name {categoryEntity.Name} already exists.");
             }
 
-            await _repository.AddAsync(categoryEntity);
-            await _cacheService.RemoveAsync(CacheKeys.AllCategories);
+            await unitOfWork.Categories.AddAsync(categoryEntity, cancellationToken);
+            await cacheService.RemoveAsync(CacheKeys.AllCategories);
 
-            return await _repository.SaveChangesAsync();
+            var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken) > 0;
+
+            if (!saveResult)
+            {
+                return Result<int>.Failure("An error occurred while creating the category.");
+            }
+
+            return Result<int>.Success(categoryEntity.Id);
         }
     }
 }

@@ -1,63 +1,49 @@
 ﻿using AutoMapper;
 using MediatR;
-using SendGrid.Helpers.Errors.Model;
-using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Products;
 using StockFlow.Application.Interfaces;
-using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Features.Products.Commands.UpdateProduct
 {
-    public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, UpdateProductModel>
+    public class UpdateProductCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cacheService) : IRequestHandler<UpdateProductCommand, Result<ProductRequestIdDto>>
     {
-        private readonly IRepository<ProductEntity> _repository;
-        private readonly IRepository<CategoryEntity> _categoriesRepository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public UpdateProductCommandHandler(
-            IRepository<ProductEntity> repository,
-            IRepository<CategoryEntity> categoriesRepository,
-            IMapper mapper, 
-            ICacheService cache)
+        public async Task<Result<ProductRequestIdDto>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-            _categoriesRepository = categoriesRepository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
-
-        public async Task<UpdateProductModel> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
-        {
-            var product = await _repository.GetByIdAsync(request.Model.Id);
+            var product = await unitOfWork.Products.GetByIdAsync(request.Data.Id, cancellationToken);
 
             if (product is null)
             {
-                throw new NotFoundException($"Product with ID {request.Model.Id} not found.");
+                return Result<ProductRequestIdDto>.Failure($"Product with ID {request.Data.Id} not found.");
             }
 
             // Last category cache
-            var lastCachedCategory = await _cacheService.GetAsync<CategoryDto>(CacheKeys.CategoryById(product.CategoryId));
-            if (lastCachedCategory != null)
+            var lastCachedCategory = await cacheService.GetAsync<CategoryIdDto>(CacheKeys.CategoryById(product.CategoryId));
+            if (lastCachedCategory is not null)
             {
-                await _cacheService.RemoveAsync(CacheKeys.ProductsByCategory(lastCachedCategory.Name));
+                await cacheService.RemoveAsync(CacheKeys.ProductsByCategory(lastCachedCategory.Name));
             }
 
             // New category cache
-            var category = await _categoriesRepository.GetByIdAsync(request.Model.CategoryId);
-            if (category != null)
+            var category = await unitOfWork.Categories.GetByIdAsync(request.Data.CategoryId, cancellationToken);
+            if (category is not null)
             {
-                await _cacheService.RemoveAsync(CacheKeys.ProductsByCategory(category.Name));
+                await cacheService.RemoveAsync(CacheKeys.ProductsByCategory(category.Name));
             }
 
-            _mapper.Map(request.Model, product);
+            mapper.Map(request.Data, product);
 
-            _repository.Update(product);
-            await _repository.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.AllProducts);
-            await _cacheService.RemoveAsync(CacheKeys.ProductById(request.Model.Id));
+            unitOfWork.Products.Update(product);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<UpdateProductModel>(product);
+            await cacheService.RemoveAsync(CacheKeys.AllProducts);
+            await cacheService.RemoveAsync(CacheKeys.ProductById(request.Data.Id));
+
+            return Result<ProductRequestIdDto>.Success(mapper.Map<ProductRequestIdDto>(product));
         }
     }
 }

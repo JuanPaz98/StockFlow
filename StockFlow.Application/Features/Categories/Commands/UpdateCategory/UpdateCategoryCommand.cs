@@ -1,5 +1,5 @@
 ﻿
 using MediatR;
 
-public record UpdateCategoryCommand(CategoryDto Model) : IRequest<CategoryDto>;
+public record UpdateCategoryCommand(CategoryIdDto Data) : IRequest<Result<CategoryIdDto>>;
 

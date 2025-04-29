@@ -2,42 +2,37 @@
 using MediatR;
 using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Customers;
 using StockFlow.Application.Interfaces;
+using StockFlow.Domain.Repositories;
 
 namespace StockFlow.Application.Features.Customer.Commands.UpdateCustomer
 {
-    public class UpdateCustomerCommandHandler : IRequestHandler<UpdateCustomerCommand, UpdateCustomerModel>
+    public class UpdateCustomerCommandHandler(
+        IUnitOfWork unitOfWork, 
+        IMapper mapper, 
+        ICacheService cache) : IRequestHandler<UpdateCustomerCommand, Result<CustomerRequestIdDto>>
     {
-        private readonly IRepository<CustomerEntity> _repository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public UpdateCustomerCommandHandler(IRepository<CustomerEntity> repository, IMapper mapper, ICacheService cache)
+        public async Task<Result<CustomerRequestIdDto>> Handle(UpdateCustomerCommand request, CancellationToken cancellationToken)
         {
-            _repository = repository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
-
-        public async Task<UpdateCustomerModel> Handle(UpdateCustomerCommand request, CancellationToken cancellationToken)
-        {
-            var customer = await _repository.GetByIdAsync(request.model.Id);
+            var customer = await unitOfWork.Customers.GetByIdAsync(request.Data.Id, cancellationToken);
 
             if (customer is null)
             {
-                throw new NotFoundException($"Customer with ID {request.model.Id} not found.");
+                return Result<CustomerRequestIdDto>.Failure($"Customer with ID {request.Data.Id} not found.");
             }
 
-            _mapper.Map(request.model, customer);
+            mapper.Map(request.Data, customer);
 
-            _repository.Update(customer);
-            await _repository.SaveChangesAsync();
+            unitOfWork.Customers.Update(customer);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheService.RemoveAsync(CacheKeys.AllCustomers);
-            await _cacheService.RemoveAsync(CacheKeys.CustomerById(request.model.Id));
+            await cache.RemoveAsync(CacheKeys.AllCustomers);
+            await cache.RemoveAsync(CacheKeys.CustomerById(request.Data.Id));
 
-            return _mapper.Map<UpdateCustomerModel>(customer);
+            return Result<CustomerRequestIdDto>.Success(mapper.Map<CustomerRequestIdDto>(customer));
         }
     }
 }

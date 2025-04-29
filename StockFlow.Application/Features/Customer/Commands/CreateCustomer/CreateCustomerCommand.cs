@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Customer.Commands.CreateCustomer;
+using StockFlow.Application.Features.Dtos.Customers;
 
 
-public record CreateCustomerCommand(CreateCustomerModel model) : IRequest<int>;
+public record CreateCustomerCommand(CustomerRequestDto Data) : IRequest<Result<int>>;
 

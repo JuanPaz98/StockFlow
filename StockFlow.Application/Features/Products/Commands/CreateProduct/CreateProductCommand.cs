@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using StockFlow.Application.Features.Products.Commands.CreateProduct;
+using StockFlow.Application.Features.Dtos.Products;
 
-public record CreateProductCommand(CreateProductModel Model) : IRequest<int>;
+public record CreateProductCommand(ProductRequestDto Data) : IRequest<Result<int>>;
 

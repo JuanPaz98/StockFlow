@@ -1,52 +1,40 @@
 ﻿using AutoMapper;
 using MediatR;
 using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
-using StockFlow.Application.Features.Dtos.Orders;
 using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Orders.Commands.CreateOrder
 {
-    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, int>
+    public class CreateOrderCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICacheService cacheService) : IRequestHandler<CreateOrderCommand, Result<int>>
     {
-        private readonly IRepository<OrderEntity> _orderRepository;
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-
-        public CreateOrderCommandHandler(IRepository<OrderEntity> orderRepository, IMapper mapper, ICacheService cache)
+        public async Task<Result<int>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
-            _orderRepository = orderRepository;
-            _mapper = mapper;
-            _cacheService = cache;
-        }
+            var orderEntity = mapper.Map<OrderEntity>(request.Data);
 
-        public async Task<int> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
-        {
-            var orderEntity = _mapper.Map<OrderEntity>(request.Model);
-
-            if (orderEntity == null)
+            orderEntity.OrderDetails = [.. request.Data.OrderDetails.Select(detail =>
             {
-                throw new Exception("All fields are required");
-            }
-
-
-            orderEntity.OrderDetails = request.Model.OrderDetails.Select(detail =>
-            {
-                var orderDetailEntity = _mapper.Map<OrderDetailEntity>(detail);
+                var orderDetailEntity = mapper.Map<OrderDetailEntity>(detail);
                 orderDetailEntity.OrderId = orderEntity.Id;
                 return orderDetailEntity;
-            }).ToList();
+            })];
 
             // Save Order and OrderDetails together
-            await _orderRepository.AddAsync(orderEntity);
-            await _orderRepository.SaveChangesAsync(); 
+            await unitOfWork.Orders.AddAsync(orderEntity, cancellationToken);
+            var saveResult = await unitOfWork.SaveChangesAsync(cancellationToken) > 0;
 
-            var orderModel = _mapper.Map<OrderWithIdDto>(orderEntity);
+            if (!saveResult)
+            {
+                return Result<int>.Failure("An error occurred while creating the order.");
+            }
 
-            await _cacheService.RemoveAsync(CacheKeys.OrdersByCustomerId(request.Model.CustomerId));
+            await cacheService.RemoveAsync(CacheKeys.OrdersByCustomerId(request.Data.CustomerId));
 
-            return orderEntity.Id;
+            return Result<int>.Success(orderEntity.Id);
         }
-
     }
 }

@@ -1,57 +1,47 @@
 ﻿using AutoMapper;
 using MediatR;
-using SendGrid.Helpers.Errors.Model;
-using StockFlow.Api.Domain.Entities;
+using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
+using StockFlow.Application.Features.Dtos.Products;
 using StockFlow.Application.Interfaces;
-using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Features.Products.Queries.GetProductByCategory
 {
-    public class GetProductByCategoryQueryHandler : IRequestHandler<GetProductsByCategoryQuery, IEnumerable<GetProductByCategoryModel>>
+    public class GetProductByCategoryQueryHandler(
+        IUnitOfWork unitOfWork,
+        ICacheService cacheService,
+        IMapper mapper
+        ) : IRequestHandler<GetProductsByCategoryQuery, Result<IEnumerable<ProductResponseDto>>>
     {
-        private readonly IRepository<ProductEntity> _productsRepository;
-        private readonly IRepository<CategoryEntity> _categoriesRepository;
-        private readonly ICacheService _cacheService;
-        private readonly IMapper _mapper;
-
-        public GetProductByCategoryQueryHandler(IRepository<ProductEntity> repository, ICacheService cache, IMapper mapper, IRepository<CategoryEntity> categoriesRepository)
+        public async Task<Result<IEnumerable<ProductResponseDto>>> Handle(GetProductsByCategoryQuery request, CancellationToken cancellationToken)
         {
-            _productsRepository = repository;
-            _categoriesRepository = categoriesRepository;
-            _cacheService = cache;
-            _mapper = mapper;
-        }
-
-        public async Task<IEnumerable<GetProductByCategoryModel>> Handle(GetProductsByCategoryQuery request, CancellationToken cancellationToken)
-        {
-            string categoryKey = CacheKeys.CategoryById(request.categoryId);
-            var cachedCategory = await _cacheService.GetAsync<CategoryDto>(categoryKey);
+            string categoryKey = CacheKeys.CategoryById(request.CategoryId);
+            var cachedCategory = await cacheService.GetAsync<CategoryIdDto>(categoryKey);
 
             if (cachedCategory is null)
             {
-                var category = await _categoriesRepository.GetByIdAsync(request.categoryId);
+                var category = await unitOfWork.Categories.GetByIdAsync(request.CategoryId, cancellationToken);
                 if (category is null)
-                    return Enumerable.Empty<GetProductByCategoryModel>();
+                    return Result<IEnumerable<ProductResponseDto>>.Success(Enumerable.Empty<ProductResponseDto>());
 
-                cachedCategory = _mapper.Map<CategoryDto>(category);
-                await _cacheService.SetAsync(categoryKey, cachedCategory);
+                cachedCategory = mapper.Map<CategoryIdDto>(category);
+                await cacheService.SetAsync(categoryKey, cachedCategory);
             }
 
             string productsKey = CacheKeys.ProductsByCategory(cachedCategory.Name);
 
-            var cachedProducts = await _cacheService.GetAsync<IEnumerable<GetProductByCategoryModel>>(productsKey);
+            var cachedProducts = await cacheService.GetAsync<IEnumerable<ProductResponseDto>>(productsKey);
             if (cachedProducts != null)
-                return cachedProducts;
+                return Result<IEnumerable<ProductResponseDto>>.Success(cachedProducts);
 
-            var products = await _productsRepository.FindAsync(p => p.CategoryId == request.categoryId);
+            var products = await unitOfWork.Products.FindAsync(p => p.CategoryId == request.CategoryId);
             if (products is null || !products.Any())
-                return Enumerable.Empty<GetProductByCategoryModel>();
+                return Result<IEnumerable<ProductResponseDto>>.Success(Enumerable.Empty<ProductResponseDto>());
 
-            var productsModels = _mapper.Map<IEnumerable<GetProductByCategoryModel>>(products);
-            await _cacheService.SetAsync(productsKey, productsModels);
+            var productsModels = mapper.Map<IEnumerable<ProductResponseDto>>(products);
+            await cacheService.SetAsync(productsKey, productsModels);
 
-            return productsModels;
+            return Result<IEnumerable<ProductResponseDto>>.Success(productsModels);
         }
 
     }
