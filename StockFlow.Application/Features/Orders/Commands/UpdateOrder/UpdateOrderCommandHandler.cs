@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using MediatR;
-using SendGrid.Helpers.Errors.Model;
 using StockFlow.Api.Domain.Entities;
 using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Features.Dtos.Orders;
 using StockFlow.Application.Interfaces;
-using StockFlow.Domain.Repositories;
 
 namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
 {
@@ -27,6 +25,8 @@ namespace StockFlow.Application.Features.Orders.Commands.UpdateOrder
             mapper.Map(request.Data, order);
 
             UpdateOrderDetails(order, request.Data);
+
+            unitOfWork.Orders.Update(order);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 

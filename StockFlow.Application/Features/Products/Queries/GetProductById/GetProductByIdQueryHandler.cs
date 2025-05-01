@@ -25,6 +25,11 @@ namespace StockFlow.Application.Features.Products.Queries.GetProductById
 
             var product = await unitOfWork.Products.GetByIdAsync(request.Id, cancellationToken);
 
+            if(product is null)
+            {
+                return Result<ProductResponseDto>.Failure($"Product with ID {request.Id} not found");
+            }
+
             var productModel = mapper.Map<ProductResponseDto>(product);
             await cacheService.SetAsync(productKey, productModel);
 

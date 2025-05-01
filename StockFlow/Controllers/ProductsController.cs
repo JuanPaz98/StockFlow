@@ -1,69 +1,136 @@
-﻿//using MediatR;
-//using Microsoft.AspNetCore.Mvc;
-//using StockFlow.Application.Features.Products.Commands.CreateProduct;
-//using StockFlow.Application.Features.Products.Commands.UpdateProduct;
+﻿using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using StockFlow.Application.Features.Dtos.Products;
+using StockFlow.Application.Features.Products.Commands.DeleteProduct;
 
-//namespace StockFlow.Api.Controllers
-//{
-//    [Route("api/v1/[controller]")]
-//    [ApiController]
-//    public class ProductsController : ControllerBase
-//    {
-//        private readonly IMediator _mediator;
+namespace StockFlow.Api.Controllers
+{
+    [Route("api/v1/products")]
+    [ApiController]
+    public class ProductsController(IMediator mediator) : ControllerBase
+    {
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await mediator.Send(new GetAllProductsQuery());
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
 
-//        public ProductsController(IMediator mediator)
-//        {
-//            _mediator = mediator;
-//        }
+            return StatusCode(StatusCodes.Status200OK, result.Value);
+        }
 
-//        [HttpGet("get-all-products")]
-//        public async Task<IActionResult> GetAll()
-//        {
-//            var products = await _mediator.Send(new GetAllProductsQuery());
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(
+            int id,
+            [FromServices] IValidator<GetProductByIdQuery> validator)
+        {
+            var query = new GetProductByIdQuery(id);
 
-//            return StatusCode(StatusCodes.Status200OK, products);
-//        }
+            var validationResult = await validator.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
 
-//        [HttpGet("get-by-id/{id}")]
-//        public async Task<IActionResult> GetById(int id)
-//        {
-//            var product = await _mediator.Send(new GetProductByIdQuery(id));
+            var result = await mediator.Send(query);
+            if (result.IsFailure)
+            {
+                return NotFound(result.Error);
+            }
 
-//            return StatusCode(StatusCodes.Status200OK, product);
-//        }
-        
-//        [HttpGet("get-by-category-id/{categoryId}")]
-//        public async Task<IActionResult> GetByCategory(int categoryId)
-//        {
-//            var products = await _mediator.Send(new GetProductsByCategoryQuery(categoryId));
+            return StatusCode(StatusCodes.Status200OK, result.Value);
+        }
 
-//            return StatusCode(StatusCodes.Status200OK, products);
-//        }
+        [HttpGet("category/{categoryId}")]
+        public async Task<IActionResult> GetByCategory(
+            int categoryId,
+            [FromServices] IValidator<GetProductsByCategoryQuery> validator)
+        {
+            var query = new GetProductsByCategoryQuery(categoryId);
 
-//        [HttpPost("create")]
-//        public async Task<IActionResult> Create(
-//            [FromBody] CreateProductModel model)
-//        {
-//            var result = await _mediator.Send(new CreateProductCommand(model));
+            var validationResult = await validator.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
 
-//            if (result == 0)
-//            {
-//                return StatusCode(StatusCodes.Status400BadRequest);
-//            }
+            var result = await mediator.Send(query);
+            if (result.IsFailure)
+            {
+                return NotFound(result.Error);
+            }
 
-//            return StatusCode(StatusCodes.Status201Created, result);
-//        }
+            return StatusCode(StatusCodes.Status200OK, result.Value);
+        }
 
-//        [HttpPut("update")]
-//        public async Task<IActionResult> Update(
-//            [FromBody] UpdateProductModel model)
-//        {
-//            var result = await _mediator.Send(new UpdateProductCommand(model));
-//            if (result is null)
-//            {
-//                return StatusCode(StatusCodes.Status400BadRequest);
-//            }
-//            return StatusCode(StatusCodes.Status200OK, model);
-//        }
-//    }
-//}
+        [HttpPost]
+        public async Task<IActionResult> Create(
+            [FromBody] ProductRequestDto data,
+            [FromServices] IValidator<CreateProductCommand> validator)
+        {
+            var command = new CreateProductCommand(data);
+
+            var validationResult = await validator.ValidateAsync(command);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(command);
+
+            if (result.IsFailure)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status201Created, result.Value);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Update(
+            [FromBody] ProductRequestIdDto data,
+            [FromServices] IValidator<UpdateProductCommand> validator)
+        {
+            var command = new UpdateProductCommand(data);
+
+            var validationResult = await validator.ValidateAsync(command);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status200OK, result.Value);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(
+            int id,
+            [FromServices] IValidator<DeleteProductCommand> validator)
+        {
+            var command = new DeleteProductCommand(id);
+
+            var validationResult = await validator.ValidateAsync(command);
+            if(!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status200OK);
+        }
+    }
+}

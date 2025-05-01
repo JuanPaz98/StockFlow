@@ -36,6 +36,8 @@ namespace StockFlow.Application.Features.Products.Commands.CreateProduct
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
+            await cacheService.RemoveAsync(CacheKeys.AllProducts);
+
             return Result<int>.Success(productEntity.Id);
         }
     }

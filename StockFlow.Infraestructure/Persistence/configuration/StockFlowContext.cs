@@ -38,20 +38,30 @@ public partial class StockFlowContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Customer__3214EC07B9F7D302");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasConversion(
+                    v => DateTime.SpecifyKind((DateTime)v, DateTimeKind.Utc),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                );
         });
 
         modelBuilder.Entity<OrderEntity>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Orders__3214EC07968CCBA2");
 
-            entity.Property(e => e.OrderDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.OrderDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasConversion(
+                    v => DateTime.SpecifyKind((DateTime)v, DateTimeKind.Utc),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                );
             entity.Property(e => e.Status).HasDefaultValue("Pending");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Orders_Customers");
-            
+
             entity.HasMany(o => o.OrderDetails)
                 .WithOne(d => d.Order)
                 .HasForeignKey(d => d.OrderId)
@@ -77,7 +87,11 @@ public partial class StockFlowContext : DbContext
             .HasName("PK__Products__3214EC077C1922AB");
 
             entity.Property(e => e.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                 .HasConversion(
+                    v => DateTime.SpecifyKind((DateTime)v, DateTimeKind.Utc),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                );
 
             entity.HasOne(d => d.Supplier)
             .WithMany(p => p.Products)
@@ -105,7 +119,13 @@ public partial class StockFlowContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__StockHis__3214EC07CC8E04D1");
 
-            entity.Property(e => e.ChangeDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.ChangeDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                 .HasConversion(
+                    v => DateTime.SpecifyKind((DateTime)v, DateTimeKind.Utc),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                );
+
 
             entity.HasOne(d => d.Product).WithMany(p => p.StockHistories)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -121,7 +141,13 @@ public partial class StockFlowContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Users__3214EC0755B8DA37");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                 .HasConversion(
+                    v => DateTime.SpecifyKind((DateTime)v, DateTimeKind.Utc),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                );
+
             entity.Property(e => e.Role).HasDefaultValue("User");
         });
 
@@ -137,8 +163,11 @@ public partial class StockFlowContext : DbContext
                 .IsRequired();
 
             entity.Property(e => e.PaymentDate)
-                .HasColumnType("timestamp")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasConversion(
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                );
 
             entity.HasOne(e => e.Order)
                 .WithMany(o => o.Payments)

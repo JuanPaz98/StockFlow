@@ -1,18 +1,15 @@
 ﻿using AutoMapper;
 using MediatR;
-using SendGrid.Helpers.Errors.Model;
-using StockFlow.Api.Domain.Entities;
 using StockFlow.Application.Cache;
 using StockFlow.Application.Common.Constants;
 using StockFlow.Application.Features.Dtos.Customers;
 using StockFlow.Application.Interfaces;
-using StockFlow.Domain.Repositories;
 
 namespace StockFlow.Application.Features.Customer.Commands.UpdateCustomer
 {
     public class UpdateCustomerCommandHandler(
-        IUnitOfWork unitOfWork, 
-        IMapper mapper, 
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
         ICacheService cache) : IRequestHandler<UpdateCustomerCommand, Result<CustomerRequestIdDto>>
     {
         public async Task<Result<CustomerRequestIdDto>> Handle(UpdateCustomerCommand request, CancellationToken cancellationToken)

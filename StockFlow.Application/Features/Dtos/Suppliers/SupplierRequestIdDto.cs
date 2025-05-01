@@ -3,7 +3,7 @@
     public record SupplierRequestIdDto(
        int Id,
        string Name,
-       string Contact,
-       string Phone
+       string? Contact,
+       string? Phone
        );
 }

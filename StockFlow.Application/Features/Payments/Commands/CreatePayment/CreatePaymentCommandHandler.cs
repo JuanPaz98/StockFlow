@@ -20,9 +20,9 @@ namespace StockFlow.Application.Features.Payments.Commands.CreatePayment
 
             await unitOfWork.Payments.AddAsync(paymentEntity, cancellationToken);
 
-            await cacheService.RemoveAsync(CacheKeys.PaymentById(paymentEntity.Id));
-
             await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await cacheService.RemoveAsync(CacheKeys.PaymentsByOrderId(request.Data.OrderId));
 
             return Result<int>.Success(paymentEntity.Id);
         }

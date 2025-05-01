@@ -17,7 +17,7 @@ namespace StockFlow.Application.Features.Customer.Queries.GetAllCustomers
             string cacheKey = CacheKeys.AllCustomers;
 
             var cachedCustomers = await cacheService.GetAsync<IEnumerable<CustomerResponseDto>>(cacheKey);
-            if (cachedCustomers.Any())
+            if (cachedCustomers != null && cachedCustomers.Any())
             {
                 return Result<IEnumerable<CustomerResponseDto>>.Success(cachedCustomers);
             }

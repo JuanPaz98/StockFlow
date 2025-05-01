@@ -7,7 +7,7 @@ using StockFlow.Application.Interfaces;
 
 namespace StockFlow.Application.Features.Products.Queries.GetProductByCategory
 {
-    public class GetProductByCategoryQueryHandler(
+    public class GetProductsByCategoryQueryHandler(
         IUnitOfWork unitOfWork,
         ICacheService cacheService,
         IMapper mapper

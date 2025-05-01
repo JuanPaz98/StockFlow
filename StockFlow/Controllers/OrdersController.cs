@@ -1,71 +1,132 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Application.Features.Dtos.Orders;
 
 namespace StockFlow.Api.Controllers
 {
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/orders")]
     [ApiController]
-    public class OrdersController : ControllerBase
+    public class OrdersController(IMediator mediator) : ControllerBase
     {
-        private readonly IMediator _mediator;
-
-        public OrdersController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
-
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> Create(
-            [FromBody] OrderRequestDto model)
+            [FromBody] OrderRequestDto data,
+            [FromServices] IValidator<CreateOrderCommand> validator)
         {
-            var result = await _mediator.Send(new CreateOrderCommand(model));
+            var command = new CreateOrderCommand(data);
 
-            return Ok(result);
+            var validationResult = await validator.ValidateAsync(command);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status201Created);
         }
 
-
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(
-           int id)
+           int id,
+           [FromServices] IValidator<GetOrderByIdQuery> validator)
         {
-            var orders = await _mediator.Send(new GetOrderByIdQuery(id));
+            var query = new GetOrderByIdQuery(id);
 
-            return Ok(orders);
+            var validationResult = await validator.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(new GetOrderByIdQuery(id));
+            if (result.IsFailure)
+            {
+                return NotFound(result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status200OK, result.Value);
         }
 
-        [HttpGet("get-orders-by-customer-id/{id}")]
+        [HttpGet("customer/{id}")]
         public async Task<IActionResult> GetByCustomerId(
-            int id)
+            int id,
+            [FromServices] IValidator<GetOrdersByCustomerIdQuery> validator)
         {
-            var orders = await _mediator.Send(new GetOrdersByCustomerIdQuery(id));
+            var query = new GetOrdersByCustomerIdQuery(id);
 
-            return Ok(orders);
+            var validationResult = await validator.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var result = await mediator.Send(query);
+            if (result.IsFailure)
+            {
+                return NotFound(result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status200OK, result.Value);
         }
 
-        [HttpPut("update")]
+        [HttpPut]
         public async Task<IActionResult> Update(
-            [FromBody] OrderWithIdDto model)
+            [FromBody] OrderWithIdDto data,
+            [FromServices] IValidator<UpdateOrderCommand> validator)
         {
-            var result = await _mediator.Send(new UpdateOrderCommand(model));
+            var command = new UpdateOrderCommand(data);
 
-            return Ok(result);
+            var resultValidation = await validator.ValidateAsync(command);
+            if (!resultValidation.IsValid)
+            {
+                return BadRequest(resultValidation.Errors);
+            }
+
+            var result = await mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return NotFound(result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status200OK, result.Value);
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(
+            int id,
+            [FromServices] IValidator<DeleteOrderCommand> validator)
         {
-            var result = await _mediator.Send(new DeleteOrderCommand(id));
+            var command = new DeleteOrderCommand(id);
 
-            return Ok(result);
+            var resultValidation = await validator.ValidateAsync(command);
+            if (!resultValidation.IsValid)
+            {
+                return BadRequest(resultValidation.Errors);
+            }
+
+            var result = await mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return NotFound(result.Error);
+            }
+
+            return StatusCode(StatusCodes.Status200OK);
         }
 
-        [HttpDelete("delete-order-details/{id}")]
-        public async Task<IActionResult> DeleteOrderDetails(int id)
-        {
-            var result = await _mediator.Send(new DeleteOrderDetailsCommand(id));
+        //[HttpDelete("{id}/details/{detailId}")]
+        //public async Task<IActionResult> DeleteOrderDetails(
+        //    int id, 
+        //    int detailId)
+        //{
+        //    var result = await mediator.Send(new DeleteOrderDetailsCommand(id));
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
     }
 }

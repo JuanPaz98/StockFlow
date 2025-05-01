@@ -1,39 +1,46 @@
-﻿//using MediatR;
-//using Microsoft.AspNetCore.Http;
-//using Microsoft.AspNetCore.Mvc;
-//using StockFlow.Application.Features.Payments.Commands.CreatePayment;
+﻿using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using StockFlow.Application.Features.Dtos.Payments;
 
-//namespace StockFlow.Api.Controllers
-//{
-//    [Route("api/[controller]")]
-//    [ApiController]
-//    public class PaymentsController : ControllerBase
-//    {
+namespace StockFlow.Api.Controllers
+{
+    [Route("api/v1/payments")]
+    [ApiController]
+    public class PaymentsController(IMediator mediator) : ControllerBase
+    {
+        [HttpGet("order/{orderId}")]
+        public async Task<IActionResult> GetByOrderId(int orderId)
+        {
+            var result = await mediator.Send(new GetPaymentsByOrderIdQuery(orderId));
+            if (result.IsFailure)
+            {
+                return NotFound(result.Error);
+            }
 
-//        private readonly IMediator _mediador;
+            return StatusCode(StatusCodes.Status200OK, result.Value);
+        }
 
-//        public PaymentsController(IMediator mediator)
-//        {
-//            _mediador = mediator;            
-//        }
+        [HttpPost]
+        public async Task<IActionResult> Create(
+            [FromBody] PaymentRequestDto data,
+            [FromServices] IValidator<CreatePaymentCommand> validator)
+        {
+            var command = new CreatePaymentCommand(data);
 
-//        [HttpGet("get-payments-by-order-id/{id}")]
-//        public async Task<IActionResult> GetByOrderId(int id)
-//        {
-//            var payments = await _mediador.Send(new GetPaymentsByOrderIdQuery(id));
-//            return Ok(payments);
-//        }
+            var validationResult = await validator.ValidateAsync(command);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
 
-//        [HttpPost("create")]
-//        public async Task<IActionResult> Create(
-//            [FromBody] CreatePaymentModel model)
-//        {
-//            var result = await _mediador.Send(new CreatePaymentCommand(model));
-//            if (result == 0)
-//            {
-//                return BadRequest();
-//            }
-//            return StatusCode(201);
-//        }
-//    }
-//}
+            var result = await mediator.Send(command);
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return StatusCode(201);
+        }
+    }
+}
